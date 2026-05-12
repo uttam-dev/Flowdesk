@@ -12,7 +12,7 @@ namespace FlowDesk.Domain.Entities
         public RequestStatusEnum OldStatus { get; set; }
         public RequestStatusEnum NewStatus { get; set; }
 
-        public int ChangedBy { get; set; }
+        public int ChangedById { get; set; }
         public User ChangedByUser { get; set; }
 
         public DateTime ChangedOn { get; set; }
