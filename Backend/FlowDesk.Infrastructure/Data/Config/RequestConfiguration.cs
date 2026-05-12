@@ -47,19 +47,20 @@ namespace FlowDesk.Infrastructure.Data.Config
             builder.Property(x => x.CategoryId)
                 .IsRequired();
 
-            builder.HasOne(x => x.Employee)
-                .WithMany()
-                .HasForeignKey(x => x.EmployeeId)
+
+            builder.HasOne(r => r.AssignedUser)
+                .WithMany(u => u.AssignedRequests)
+                .HasForeignKey(r => r.AssignedToId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            builder.HasOne(x => x.Category)
-                .WithMany()
-                .HasForeignKey(x => x.CategoryId)
+            builder.HasOne(r => r.Employee)
+                .WithMany(u => u.CreatedRequests)
+                .HasForeignKey(r => r.EmployeeId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            builder.HasOne(x => x.AssignedUser)
-                .WithMany()
-                .HasForeignKey(x => x.AssignedToId)
+            builder.HasOne(r => r.Category)
+                .WithMany(c => c.Requests)
+                .HasForeignKey(r => r.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

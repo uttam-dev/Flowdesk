@@ -1,8 +1,6 @@
 ﻿using FlowDesk.Application.Common.DTOs;
 using FlowDesk.Application.Common.Exceptions;
 using System.ComponentModel.DataAnnotations;
-using System.Net;
-using System.Text.Json;
 
 namespace FlowDesk.Api.Middleware
 {
@@ -38,7 +36,7 @@ namespace FlowDesk.Api.Middleware
         {
             var traceId = context.TraceIdentifier;
 
-            // 🔥 Structured Logging (VERY IMPORTANT)
+            // Structured Logging
             _logger.LogError(ex,
                 "Exception Occurred | TraceId: {TraceId} | Path: {Path} | Method: {Method} | User: {User}",
                 traceId,
@@ -59,16 +57,14 @@ namespace FlowDesk.Api.Middleware
                     response.Message = appEx.Message;
                     break;
 
-                //case ValidationException validationEx:
-                //    response.StatusCode = 400;
-                //    response.Message = "Validation failed";
-                //    response.Errors = validationEx.Errors
-                //        .Select(e => e.ErrorMessage)
-                //        .ToList();
+                case ValidationException validationEx:
+                    response.StatusCode = 400;
+                    response.Message = "Validation failed";
+                    response.Errors = [validationEx.Message];
 
-                //    _logger.LogWarning("Validation failed | TraceId: {TraceId} | Errors: {@Errors}",
-                //        traceId, response.Errors);
-                //    break;
+                    _logger.LogWarning("Validation failed | TraceId: {TraceId} | Errors: {@Errors}",
+                        traceId, response.Errors);
+                    break;
 
                 case UnauthorizedAccessException:
                     response.StatusCode = 401;

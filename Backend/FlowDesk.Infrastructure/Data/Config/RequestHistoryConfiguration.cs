@@ -29,21 +29,22 @@ namespace FlowDesk.Infrastructure.Data.Config
             builder.Property(x => x.RequestId)
                 .IsRequired();
 
-            builder.HasOne(x => x.Request)
-                .WithMany()
-                .HasForeignKey(x => x.RequestId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            builder.HasOne(x => x.ChangedByUser)
-                .WithMany()
-                .HasForeignKey(x => x.ChangedById)
-                .OnDelete(DeleteBehavior.Restrict);
-
             builder.Property(x => x.OldStatus)
                 .HasConversion<int>();
 
             builder.Property(x => x.NewStatus)
                 .HasConversion<int>();
+
+            builder.HasOne(h => h.Request)
+                .WithMany(r => r.Histories)
+                .HasForeignKey(h => h.RequestId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasOne(h => h.ChangedByUser)
+                .WithMany(u => u.RequestHistories)
+                .HasForeignKey(h => h.ChangedById)
+                .OnDelete(DeleteBehavior.Restrict);
+
         }
     }
 }

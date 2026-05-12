@@ -8,7 +8,7 @@ backend/**/obj/
 backend/.vs/
 backend/**/*.user
 backend/**/*.suo
-
+backend/**/Migrations
 ############################
 
 # Frontend (React / Next / Vite)

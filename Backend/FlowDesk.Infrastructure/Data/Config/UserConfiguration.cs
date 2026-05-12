@@ -45,6 +45,7 @@ namespace FlowDesk.Infrastructure.Data.Config
                 .WithMany(x => x.Subordinates)
                 .HasForeignKey(x => x.ManagerId)
                 .OnDelete(DeleteBehavior.Restrict);
+    
         }
     }
 }
