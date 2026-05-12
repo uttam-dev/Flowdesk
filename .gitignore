@@ -1,0 +1,72 @@
+############################
+
+# Backend (.NET)
+
+############################
+backend/**/bin/
+backend/**/obj/
+backend/.vs/
+backend/**/*.user
+backend/**/*.suo
+
+############################
+
+# Frontend (React / Next / Vite)
+
+############################
+frontend/**/node_modules/
+frontend/**/dist/
+frontend/**/build/
+frontend/**/.next/
+frontend/**/.cache/
+
+############################
+
+# Logs
+
+############################
+*.log
+logs/
+
+############################
+
+# Environment Files
+
+############################
+.env
+.env.*
+backend/**/appsettings.Development.json
+
+############################
+
+# OS Files
+
+############################
+.DS_Store
+Thumbs.db
+
+############################
+
+# IDEs
+
+############################
+.vscode/
+*/.vscode/
+.idea/
+
+############################
+
+# Test Results
+
+############################
+backend/**/TestResults/
+*.trx
+*.coverage
+
+############################
+
+# Misc
+
+############################
+*.tmp
+*.cache

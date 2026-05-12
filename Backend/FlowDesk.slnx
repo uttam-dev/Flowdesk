@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/Tests/">
+    <Project Path="FlowDesk.Domain.Tests/FlowDesk.Domain.Tests.csproj" />
+    <Project Path="FlowDesk.Infrastructure.Tests/FlowDesk.Infrastructure.Tests.csproj" />
+    <Project Path="FlowDesk.Test.Application/FlowDesk.Application.Tests.csproj" />
+  </Folder>
+  <Project Path="FlowDesk.Api/FlowDesk.Api.csproj" />
+  <Project Path="FlowDesk.Application/FlowDesk.Application.csproj" />
+  <Project Path="FlowDesk.Domain/FlowDesk.Domain.csproj" />
+  <Project Path="FlowDesk.Infrastructure/FlowDesk.Infrastructure.csproj" />
+</Solution>
