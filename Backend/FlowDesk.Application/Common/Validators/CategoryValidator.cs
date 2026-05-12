@@ -14,8 +14,9 @@ namespace FlowDesk.Application.Common.Validators
                 .NotEmpty().WithMessage("Category name is required")
                 .MaximumLength(100);
 
+            var now = DateTime.UtcNow;
             RuleFor(x => x.CreatedOn)
-                .LessThanOrEqualTo(DateTime.UtcNow)
+                .LessThanOrEqualTo(now)
                 .WithMessage("CreatedOn cannot be in future");
 
             RuleFor(x => x.UpdatedOn)

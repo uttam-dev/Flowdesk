@@ -8,12 +8,10 @@ namespace FlowDesk.Application.Common.Validators
         public RoleValidator()
         {
             RuleFor(x => x.RoleName)
-                .NotEmpty().WithMessage("Role name is required")
-                .MaximumLength(100);
-
-            RuleFor(x => x.RoleName)
-                .Must(name => !string.IsNullOrWhiteSpace(name))
-                .WithMessage("Role name cannot be empty or whitespace");
+             .NotEmpty().WithMessage("Role name is required")
+             .Must(name => !string.IsNullOrWhiteSpace(name))
+             .WithMessage("Role name cannot be empty or whitespace")
+             .MaximumLength(100);
         }
     }
 }

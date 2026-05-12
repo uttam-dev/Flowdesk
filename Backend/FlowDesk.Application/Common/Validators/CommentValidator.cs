@@ -1,8 +1,5 @@
 ﻿using FlowDesk.Domain.Entities;
 using FluentValidation;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace FlowDesk.Application.Common.Validators
 {
