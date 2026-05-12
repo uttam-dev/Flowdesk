@@ -25,14 +25,15 @@ namespace FlowDesk.Infrastructure.Data.Config
             builder.Property(x => x.CommentById)
                 .IsRequired();
 
-            builder.HasOne(x => x.Request)
-                .WithMany()
-                .HasForeignKey(x => x.RequestId)
+            builder
+                .HasOne(c => c.Request)
+                .WithMany(r => r.Comments)
+                .HasForeignKey(c => c.RequestId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasOne(x => x.Commenter)
-                .WithMany()
-                .HasForeignKey(x => x.CommentById)
+            builder.HasOne(c => c.Commenter)
+                .WithMany(u => u.Comments)
+                .HasForeignKey(c => c.CommentById)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }
