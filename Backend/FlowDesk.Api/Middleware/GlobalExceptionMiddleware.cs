@@ -1,11 +1,11 @@
-﻿namespace FlowDesk.Api.Middleware
-{
-    using FlowDesk.Application.Common.DTOs;
-    using FlowDesk.Application.Common.Exceptions;
-    using System.ComponentModel.DataAnnotations;
-    using System.Net;
-    using System.Text.Json;
+﻿using FlowDesk.Application.Common.DTOs;
+using FlowDesk.Application.Common.Exceptions;
+using System.ComponentModel.DataAnnotations;
+using System.Net;
+using System.Text.Json;
 
+namespace FlowDesk.Api.Middleware
+{
     public class GlobalExceptionMiddleware
     {
         private readonly RequestDelegate _next;
@@ -30,17 +30,26 @@
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unhandled Exception");
-
                 await HandleExceptionAsync(context, ex);
             }
         }
 
         private async Task HandleExceptionAsync(HttpContext context, Exception ex)
         {
-            var response = new ErrorResponseDto()
+            var traceId = context.TraceIdentifier;
+
+            // 🔥 Structured Logging (VERY IMPORTANT)
+            _logger.LogError(ex,
+                "Exception Occurred | TraceId: {TraceId} | Path: {Path} | Method: {Method} | User: {User}",
+                traceId,
+                context.Request.Path,
+                context.Request.Method,
+                context.User?.Identity?.Name ?? "Anonymous"
+            );
+
+            var response = new ErrorResponseDto
             {
-                TraceId = context.TraceIdentifier
+                TraceId = traceId
             };
 
             switch (ex)
@@ -50,23 +59,34 @@
                     response.Message = appEx.Message;
                     break;
 
+                //case ValidationException validationEx:
+                //    response.StatusCode = 400;
+                //    response.Message = "Validation failed";
+                //    response.Errors = validationEx.Errors
+                //        .Select(e => e.ErrorMessage)
+                //        .ToList();
+
+                //    _logger.LogWarning("Validation failed | TraceId: {TraceId} | Errors: {@Errors}",
+                //        traceId, response.Errors);
+                //    break;
+
                 case UnauthorizedAccessException:
-                    response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                    response.StatusCode = 401;
                     response.Message = "Unauthorized access";
                     break;
 
                 case KeyNotFoundException:
-                    response.StatusCode = (int)HttpStatusCode.NotFound;
+                    response.StatusCode = 404;
                     response.Message = "Resource not found";
                     break;
 
                 default:
-                    response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                    response.StatusCode = 500;
                     response.Message = "Something went wrong";
 
                     if (_env.IsDevelopment())
                     {
-                        response.Details = ex.Message;
+                        response.Details = ex.ToString(); // full stack trace in dev
                     }
                     break;
             }
@@ -74,12 +94,7 @@
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = response.StatusCode;
 
-            var options = new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            };
-
-            await context.Response.WriteAsync(JsonSerializer.Serialize(response, options));
+            await context.Response.WriteAsJsonAsync(response);
         }
     }
 }
