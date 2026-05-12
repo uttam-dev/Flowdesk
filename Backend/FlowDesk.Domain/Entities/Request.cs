@@ -1,7 +1,4 @@
 ﻿using FlowDesk.Domain.Enums;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace FlowDesk.Domain.Entities
 {
@@ -21,7 +18,7 @@ namespace FlowDesk.Domain.Entities
         public PriorityEnum Priority { get; set; }   
         public RequestStatusEnum Status { get; set; } = RequestStatusEnum.Open;
         
-        public int? AssignedTo { get; set; }
+        public int? AssignedToId { get; set; }
         public User? AssignedUser { get; set; }
 
         public DateTime CreatedOn { get; set; }
