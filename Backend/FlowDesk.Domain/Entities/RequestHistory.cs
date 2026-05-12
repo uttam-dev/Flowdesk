@@ -1,0 +1,24 @@
+﻿using FlowDesk.Domain.Enums;
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace FlowDesk.Domain.Entities
+{
+    public class RequestHistory
+    {
+        public int HistoryId { get; set; }
+
+        public int RequestId { get; set; }
+        public Request Request { get; set; }
+
+        public RequestStatusEnum OldStatus { get; set; }
+        public RequestStatusEnum NewStatus { get; set; }
+
+        public int ChangedBy { get; set; }
+        public User ChangedByUser { get; set; }
+
+        public DateTime ChangedOn { get; set; }
+        public string? Remarks { get; set; }
+    }
+}
