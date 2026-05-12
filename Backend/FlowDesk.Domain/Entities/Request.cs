@@ -24,5 +24,8 @@ namespace FlowDesk.Domain.Entities
         public DateTime CreatedOn { get; set; }
         public DateTime UpdatedOn { get; set; }
         public DateTime? ClosedOn { get; set; }
+
+        public ICollection<Comment>? Comments { get; set; }
+        public ICollection<RequestHistory>? Histories { get; set; }
     }
 }

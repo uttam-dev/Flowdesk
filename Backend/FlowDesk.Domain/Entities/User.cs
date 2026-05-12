@@ -19,5 +19,9 @@
         public DateTime CreatedOn { get; set; } = DateTime.UtcNow;
 
         public ICollection<User>? Subordinates { get; set; }
+        public ICollection<Request>? CreatedRequests { get; set; }
+        public ICollection<Request>? AssignedRequests { get; set; }
+        public ICollection<Comment>? Comments { get; set; }
+        public ICollection<RequestHistory>? RequestHistories { get; set; }
     }
 }
