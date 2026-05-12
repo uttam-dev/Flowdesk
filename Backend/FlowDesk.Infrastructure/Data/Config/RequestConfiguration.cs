@@ -1,0 +1,66 @@
+﻿using FlowDesk.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace FlowDesk.Infrastructure.Data.Config
+{
+    public class RequestConfiguration : IEntityTypeConfiguration<Request>
+    {
+        public void Configure(EntityTypeBuilder<Request> builder)
+        {
+            builder.HasKey(x => x.RequestId);
+
+            builder.Property(x => x.RequestNumber)
+                .IsRequired()
+                .HasMaxLength(20);
+
+            builder.HasIndex(x => x.RequestNumber)
+                .IsUnique();
+
+            builder.Property(x => x.Title)
+                .IsRequired()
+                .HasMaxLength(200);
+
+            builder.Property(x => x.Description)
+                .IsRequired();
+
+            builder.Property(x => x.CreatedOn)
+                .IsRequired();
+
+            builder.Property(x => x.UpdatedOn)
+                .IsRequired();
+
+            builder.Property(x => x.ClosedOn)
+                .IsRequired(false);
+
+            builder.Property(x => x.Priority)
+                .HasConversion<int>()
+                .IsRequired();
+
+            builder.Property(x => x.Status)
+                .HasConversion<int>()
+                .IsRequired();
+
+            builder.Property(x => x.EmployeeId)
+                .IsRequired();
+
+            builder.Property(x => x.CategoryId)
+                .IsRequired();
+
+            builder.HasOne(x => x.Employee)
+                .WithMany()
+                .HasForeignKey(x => x.EmployeeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne(x => x.Category)
+                .WithMany()
+                .HasForeignKey(x => x.CategoryId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne(x => x.AssignedUser)
+                .WithMany()
+                .HasForeignKey(x => x.AssignedToId)
+                .OnDelete(DeleteBehavior.Restrict);
+        }
+    }
+}
