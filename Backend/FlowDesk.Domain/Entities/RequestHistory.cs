@@ -1,7 +1,4 @@
 ﻿using FlowDesk.Domain.Enums;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace FlowDesk.Domain.Entities
 {

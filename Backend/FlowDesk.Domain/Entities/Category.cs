@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace FlowDesk.Domain.Entities
+﻿namespace FlowDesk.Domain.Entities
 {
     public class Category
     {
