@@ -14,6 +14,7 @@ builder.Services.AddOpenApi();
 //Inject AddApi Dependencies
 builder.Services.AddApi(builder.Configuration);
 
+//Dto's Validation Error Response
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
     options.InvalidModelStateResponseFactory = context =>

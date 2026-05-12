@@ -1,7 +1,9 @@
 ﻿using FlowDesk.Application;
+using FlowDesk.Application.Common.Validators;
 using FlowDesk.Domain;
 using FlowDesk.Infrastructure;
-
+using FluentValidation;
+using FluentValidation.AspNetCore; 
 
 namespace FlowDesk.Api
 {
@@ -14,6 +16,10 @@ namespace FlowDesk.Api
             .AddApplication()
             .AddDomain()
             .AddInfrastructure(configuration);
+
+            //Fluent Validation
+            services.AddValidatorsFromAssemblyContaining<UserValidator>();
+            services.AddFluentValidationAutoValidation();
 
             return services;
         }
