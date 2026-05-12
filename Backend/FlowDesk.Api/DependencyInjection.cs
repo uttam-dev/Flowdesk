@@ -3,7 +3,8 @@ using FlowDesk.Application.Common.Validators;
 using FlowDesk.Domain;
 using FlowDesk.Infrastructure;
 using FluentValidation;
-using FluentValidation.AspNetCore; 
+using FluentValidation.AspNetCore;
+using Serilog;
 
 namespace FlowDesk.Api
 {
