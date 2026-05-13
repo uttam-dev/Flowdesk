@@ -17,13 +17,12 @@
         public bool IsActive { get; set; } = true;
         public bool IsDeleted { get; set; } = false;
         public DateTime CreatedOn { get; set; } = DateTime.UtcNow;
-        public string RefreshToken { get; set; } = string.Empty;
-        public DateTime? RefreshTokenExpiryTime { get; set; }
 
         public ICollection<User>? Subordinates { get; set; }
         public ICollection<Request>? CreatedRequests { get; set; }
         public ICollection<Request>? AssignedRequests { get; set; }
         public ICollection<Comment>? Comments { get; set; }
         public ICollection<RequestHistory>? RequestHistories { get; set; }
+        public ICollection<RefreshToken>? RefreshTokens { get; set; }
     }
 }
