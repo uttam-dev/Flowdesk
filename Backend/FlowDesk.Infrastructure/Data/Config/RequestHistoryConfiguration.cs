@@ -8,7 +8,7 @@ namespace FlowDesk.Infrastructure.Data.Config
     {
         public void Configure(EntityTypeBuilder<RequestHistory> builder)
         {
-            builder.HasKey(x => x.HistoryId);
+            builder.HasKey(x => x.RequestHistoryId);
 
             builder.Property(x => x.OldStatus)
                 .IsRequired();
