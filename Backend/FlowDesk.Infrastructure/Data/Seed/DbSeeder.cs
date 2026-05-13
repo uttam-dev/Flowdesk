@@ -1,4 +1,5 @@
-﻿using FlowDesk.Domain.Entities;
+﻿using FlowDesk.Application.Services;
+using FlowDesk.Domain.Entities;
 using FlowDesk.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
@@ -34,11 +35,13 @@ namespace FlowDesk.Infrastructure.Data.Seed
 
             if (!context.Users.Any())
             {
+                var passHashed = PasswordService.HashPassword("12345");
+
                 context.Users.Add(new User
                 {
                     FullName = "Admin User",
                     Email = "admin@test.com",
-                    PasswordHash = "hashed",
+                    PasswordHash = passHashed,
                     RoleId = 1
                 });
             }
