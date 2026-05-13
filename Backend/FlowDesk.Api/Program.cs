@@ -1,6 +1,8 @@
 using FlowDesk.Api;
 using FlowDesk.Api.Middleware;
 using FlowDesk.Application.Common.DTOs;
+using FlowDesk.Infrastructure.Data;
+using FlowDesk.Infrastructure.Data.Seed;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Serilog;
@@ -39,6 +41,7 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
     };
 });
 
+
 // Configure Serilog
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
@@ -51,6 +54,13 @@ Log.Logger = new LoggerConfiguration()
 builder.Host.UseSerilog();
 
 var app = builder.Build();
+
+// Configure seeding data
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await DbSeeder.SeedAsync(db);
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
