@@ -1,11 +1,11 @@
 using FlowDesk.Api;
 using FlowDesk.Api.Middleware;
-using FlowDesk.Application.Common.DTOs;
+using FlowDesk.Domain.DTOs;
 using FlowDesk.Infrastructure.Data;
 using FlowDesk.Infrastructure.Data.Seed;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using Serilog;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -50,6 +50,7 @@ Log.Logger = new LoggerConfiguration()
     .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day)
     .CreateLogger();
 
+
 // Configure Serilog
 builder.Host.UseSerilog();
 
@@ -66,11 +67,15 @@ using (var scope = app.Services.CreateScope())
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json","FlowDesk Api's"));
 }
 
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
 app.UseHttpsRedirection();
+
+app.UseAuthentication();
 
 app.UseAuthorization();
 

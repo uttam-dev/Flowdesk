@@ -7,10 +7,11 @@ namespace FlowDesk.Infrastructure.Repositories
 {
     public class RequestRepository(AppDbContext _context) : IRequestRepository
     {
-        public async Task AddAsync(Request request)
+        public async Task<Request> AddAsync(Request request)
         {
             await _context.Requests.AddAsync(request);
             await _context.SaveChangesAsync();
+            return request;
         }
 
         public async Task<bool> ExistsAsync(int requestId)
@@ -40,10 +41,11 @@ namespace FlowDesk.Infrastructure.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task Update(Request request)
+        public async Task<Request> Update(Request request)
         {
             _context.Requests.Update(request);
             await _context.SaveChangesAsync();
+            return request;
         }
     }
 }

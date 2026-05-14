@@ -1,4 +1,4 @@
-﻿using FlowDesk.Application.Common.DTOs;
+﻿using FlowDesk.Domain.DTOs;
 using FlowDesk.Application.Common.Exceptions;
 using System.ComponentModel.DataAnnotations;
 
@@ -36,15 +36,6 @@ namespace FlowDesk.Api.Middleware
         {
             var traceId = context.TraceIdentifier;
 
-            // Structured Logging
-            _logger.LogError(ex,
-                "Exception Occurred | TraceId: {TraceId} | Path: {Path} | Method: {Method} | User: {User}",
-                traceId,
-                context.Request.Path,
-                context.Request.Method,
-                context.User?.Identity?.Name ?? "Anonymous"
-            );
-
             var response = new ErrorResponseDto
             {
                 TraceId = traceId
@@ -52,37 +43,88 @@ namespace FlowDesk.Api.Middleware
 
             switch (ex)
             {
+                // PRIMARY FLOW
                 case AppException appEx:
                     response.StatusCode = appEx.StatusCode;
                     response.Message = appEx.Message;
+                    response.ErrorCode = appEx.ErrorCode;
+                    response.Details = appEx.Details;
+
+                    if (appEx is ValidationAppException && appEx.Details is IEnumerable<string> errors)
+                    {
+                        response.Errors = errors.ToList();
+                    }
+
+                    LogByStatusCode(appEx.StatusCode, ex, context, traceId);
                     break;
 
+                // DataAnnotations / FluentValidation
                 case ValidationException validationEx:
                     response.StatusCode = 400;
                     response.Message = "Validation failed";
-                    response.Errors = [validationEx.Message];
+                    response.ErrorCode = "VALIDATION_ERROR";
+                    response.Errors = new List<string> { validationEx.Message };
 
-                    _logger.LogWarning("Validation failed | TraceId: {TraceId} | Errors: {@Errors}",
-                        traceId, response.Errors);
+                    _logger.LogWarning(ex,
+                        "Validation failed | TraceId: {TraceId} | Path: {Path}",
+                        traceId, context.Request.Path);
+                    break;
+
+              
+                case ArgumentException argEx:
+                    response.StatusCode = 400;
+                    response.Message = argEx.Message;
+                    response.ErrorCode = "BAD_REQUEST";
+
+                    _logger.LogWarning(ex,
+                        "Argument exception | TraceId: {TraceId} | Path: {Path}",
+                        traceId, context.Request.Path);
+                    break;
+
+                case InvalidOperationException invalidOpEx:
+                    response.StatusCode = 400;
+                    response.Message = invalidOpEx.Message;
+                    response.ErrorCode = "INVALID_OPERATION";
+
+                    _logger.LogWarning(ex,
+                        "Invalid operation | TraceId: {TraceId} | Path: {Path}",
+                        traceId, context.Request.Path);
                     break;
 
                 case UnauthorizedAccessException:
                     response.StatusCode = 401;
-                    response.Message = "Unauthorized access";
+                    response.Message = "Unauthorized";
+                    response.ErrorCode = "UNAUTHORIZED";
+
+                    _logger.LogWarning(ex,
+                        "Unauthorized access | TraceId: {TraceId}",
+                        traceId);
                     break;
 
                 case KeyNotFoundException:
                     response.StatusCode = 404;
                     response.Message = "Resource not found";
+                    response.ErrorCode = "NOT_FOUND";
+
+                    _logger.LogWarning(ex,
+                        "Resource not found | TraceId: {TraceId}",
+                        traceId);
                     break;
 
                 default:
                     response.StatusCode = 500;
                     response.Message = "Something went wrong";
+                    response.ErrorCode = "INTERNAL_SERVER_ERROR";
+
+                    _logger.LogError(ex,
+                        "Unhandled exception | TraceId: {TraceId} | Path: {Path} | Method: {Method}",
+                        traceId,
+                        context.Request.Path,
+                        context.Request.Method);
 
                     if (_env.IsDevelopment())
                     {
-                        response.Details = ex.ToString(); // full stack trace in dev
+                        response.Details = ex.ToString();
                     }
                     break;
             }
@@ -91,6 +133,25 @@ namespace FlowDesk.Api.Middleware
             context.Response.StatusCode = response.StatusCode;
 
             await context.Response.WriteAsJsonAsync(response);
+        }
+
+        private void LogByStatusCode(int statusCode, Exception ex, HttpContext context, string traceId)
+        {
+            var path = context.Request.Path;
+            var method = context.Request.Method;
+
+            if (statusCode >= 500)
+            {
+                _logger.LogError(ex,
+                    "Server error | TraceId: {TraceId} | Path: {Path} | Method: {Method}",
+                    traceId, path, method);
+            }
+            else if (statusCode >= 400)
+            {
+                _logger.LogWarning(ex,
+                    "Client error | StatusCode: {StatusCode} | TraceId: {TraceId} | Path: {Path}",
+                    statusCode, traceId, path);
+            }
         }
     }
 }
