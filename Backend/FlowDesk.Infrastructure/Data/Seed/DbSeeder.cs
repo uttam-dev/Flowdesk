@@ -1,6 +1,7 @@
 ﻿using FlowDesk.Application.Services;
 using FlowDesk.Domain.Entities;
 using FlowDesk.Domain.Enums;
+using FlowDesk.Domain.Utils;
 using Microsoft.EntityFrameworkCore;
 
 namespace FlowDesk.Infrastructure.Data.Seed
@@ -22,10 +23,10 @@ namespace FlowDesk.Infrastructure.Data.Seed
                 int supportRoleId = (int)RoleEnum.Support;
 
                 context.Roles.AddRange(
-                    new Role { RoleId = employeeRoleId, RoleName = RoleEnum.Employee.ToString() },
-                    new Role { RoleId = managerRoleId, RoleName = RoleEnum.Manager.ToString() },
-                    new Role { RoleId = adminRoleId, RoleName = RoleEnum.Admin.ToString() },
-                    new Role { RoleId = supportRoleId, RoleName = RoleEnum.Support.ToString() }
+                    new Role { RoleId = employeeRoleId, RoleName = RoleName.Employee },
+                    new Role { RoleId = managerRoleId, RoleName = RoleName.Manager },
+                    new Role { RoleId = adminRoleId, RoleName = RoleName.Admin },
+                    new Role { RoleId = supportRoleId, RoleName = RoleName.Support }
                 );
 
                 await context.SaveChangesAsync();
@@ -42,8 +43,24 @@ namespace FlowDesk.Infrastructure.Data.Seed
                     FullName = "Admin User",
                     Email = "admin@test.com",
                     PasswordHash = passHashed,
-                    RoleId = 1
+                    RoleId = 3
                 });
+
+                var dummyUsers = new List<User>
+                {
+                    new User { FullName = "David Brown",    Email = "david@test.com",  PasswordHash = passHashed, RoleId = 1 },
+                    new User { FullName = "Eva Martinez",   Email = "eva@test.com",    PasswordHash = passHashed, RoleId = 1 },
+                    new User { FullName = "Frank Wilson",   Email = "frank@test.com",  PasswordHash = passHashed, RoleId = 1 },
+                    new User { FullName = "Grace Lee",      Email = "grace@test.com",  PasswordHash = passHashed, RoleId = 1 },
+                    new User { FullName = "Alice Johnson",  Email = "alice@test.com",  PasswordHash = passHashed, RoleId = 2 },
+                    new User { FullName = "Bob Smith",      Email = "bob@test.com",    PasswordHash = passHashed, RoleId = 2 },
+                    new User { FullName = "Carol White",    Email = "carol@test.com",  PasswordHash = passHashed, RoleId = 2 },
+                    new User { FullName = "Henry Taylor",   Email = "henry@test.com",  PasswordHash = passHashed, RoleId = 4 },
+                    new User { FullName = "Isla Anderson",  Email = "isla@test.com",   PasswordHash = passHashed, RoleId = 4 },
+                    new User { FullName = "Jack Thomas",    Email = "jack@test.com",   PasswordHash = passHashed, RoleId = 4 },
+                };
+
+                context.Users.AddRange(dummyUsers);
             }
 
             await context.SaveChangesAsync();

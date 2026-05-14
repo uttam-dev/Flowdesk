@@ -18,7 +18,7 @@ namespace FlowDesk.Infrastructure.Services
                 new(ClaimTypes.NameIdentifier, user.UserId.ToString()),
                 new(ClaimTypes.Email, user.Email),
                 new(ClaimTypes.Name, user.FullName),
-                new(ClaimTypes.Role, user.RoleId.ToString())
+                new(ClaimTypes.Role, user.Role.RoleName)
             };
 
             var key = new SymmetricSecurityKey(

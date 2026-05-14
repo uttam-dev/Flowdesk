@@ -5,7 +5,6 @@ using FlowDesk.Infrastructure.Data;
 using FlowDesk.Infrastructure.Data.Seed;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
-using Serilog.Events;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -69,12 +68,14 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json","FlowDesk Api's"));
 }
 
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
 app.UseHttpsRedirection();
+
+app.UseAuthentication();
 
 app.UseAuthorization();
 

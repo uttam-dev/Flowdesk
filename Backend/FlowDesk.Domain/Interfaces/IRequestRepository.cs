@@ -9,8 +9,8 @@ namespace FlowDesk.Domain.Interfaces
     {
         Task<Request?> GetByIdAsync(int requestId);
         Task<IReadOnlyList<Request>> GetAllAsync();
-        Task AddAsync(Request request);
-        Task Update(Request request);
+        Task<Request> AddAsync(Request request);
+        Task<Request> Update(Request request);
         Task HardDelete(Request request);
         Task<bool> ExistsAsync(int requestId);
         Task SaveChangesAsync();
