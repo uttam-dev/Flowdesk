@@ -53,7 +53,7 @@ namespace FlowDesk.Api.Controllers
         {
             var roles = await _mediator.Send(new GetRolesQuery());
             return Ok(new ApiResponseDto() { Message = "Roles fetched successfully.", Data = roles });
-        } 
+        }
 
 
         //Get current user details
@@ -92,7 +92,8 @@ namespace FlowDesk.Api.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> SoftDeleteUser(int id)
         {
-            await _mediator.Send(new SoftDeleteUserCommand(id));
+            var currentUserId = Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            await _mediator.Send(new SoftDeleteUserCommand(id, currentUserId));
             return Ok(new ApiResponseDto() { Message = "User deleted successfully." });
         }
 
@@ -104,5 +105,26 @@ namespace FlowDesk.Api.Controllers
             var updatedUser = await _mediator.Send(new UpdateUserDetailsCommand(id, updateUserDto));
             return Ok(new ApiResponseDto() { Message = "User updated successfully.", Data = updatedUser });
         }
+
+        [Authorize("RequireAdminRole")]
+        //active user
+        [HttpPatch("{id}/active")]
+        public async Task<IActionResult> ActiveUser(int id)
+        {
+            var currentUserId = Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            await _mediator.Send(new ActiveUserCommand(id,currentUserId));
+            return Ok(new ApiResponseDto() { Message="User activated successfully."});
+        }
+
+        [Authorize("RequireAdminRole")]
+        //active user
+        [HttpPatch("{id}/deactive")]
+        public async Task<IActionResult> DeactiveUser(int id)
+        {
+            var currentUserId = Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            await _mediator.Send(new DeactiveUserCommand(id, currentUserId));
+            return Ok(new ApiResponseDto() { Message="User activated successfully."});
+        }
+
     }
 }

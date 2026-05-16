@@ -1,5 +1,6 @@
 function titleForPath(pathname) {
   if (pathname.startsWith('/categories')) return 'Categories'
+  if (pathname.startsWith('/users')) return 'Users'
   if (pathname.startsWith('/admin-sample')) return 'Admin sample'
   return 'Dashboard'
 }
