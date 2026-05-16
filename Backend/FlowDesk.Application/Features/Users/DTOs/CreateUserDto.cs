@@ -23,8 +23,6 @@ namespace FlowDesk.Application.Features.Users.DTOs
 
         [Required(ErrorMessage = "Role id is required")]
         public int RoleId { get; set; }
-
-        [Required(ErrorMessage = "Manager id is required")]
         public int? ManagerId { get; set; }
         public bool IsActive { get; set; } = true;
     }

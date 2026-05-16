@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using FlowDesk.Application.Common.Exceptions;
+using System.Security.Claims;
 
 namespace FlowDesk.Application.Features.Users.Commands
 {
-    public record SoftDeleteUserCommand(int userId):MediatR.IRequest;
+    public record SoftDeleteUserCommand(int userId,int currentUserId):MediatR.IRequest;
 
     public class SoftDeleteUserCommandHandler(Domain.Interfaces.IUserRepository userRepository) : MediatR.IRequestHandler<SoftDeleteUserCommand>
     {
@@ -14,6 +13,11 @@ namespace FlowDesk.Application.Features.Users.Commands
             if (user == null)
             {
                 throw new Common.Exceptions.NotFoundException("User not found.");
+            }
+
+            if (user.UserId == request.currentUserId)
+            {
+                throw new BadRequestException("Invaldi request.");
             }
             user.IsDeleted = true;
             await userRepository.Update(user);

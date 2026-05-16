@@ -53,6 +53,7 @@ namespace FlowDesk.Infrastructure.Repositories
             var query = _context.Users
                 .Include(u => u.Role)
                 .Include(u => u.Manager)
+                .Where(u => !u.IsDeleted)
                 .AsNoTracking()
                 .AsQueryable();
 
