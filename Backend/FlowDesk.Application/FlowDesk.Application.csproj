@@ -12,8 +12,6 @@
     <Folder Include="Features\Comments\Queries\" />
     <Folder Include="Features\Dashboard\Commands\" />
     <Folder Include="Features\Dashboard\Queries\" />
-    <Folder Include="Features\Categories\Commands\" />
-    <Folder Include="Features\Categories\Queries\" />
     <Folder Include="Features\Requests\Commands\" />
     <Folder Include="Features\Requests\Queries\" />
   </ItemGroup>

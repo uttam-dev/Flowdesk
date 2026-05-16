@@ -98,6 +98,19 @@ namespace FlowDesk.Api
                 options.AddPolicy("RequireAnyRole", policy => policy.RequireRole(RoleName.Admin, RoleName.Manager, RoleName.Support, RoleName.Employee));
             });
 
+            // Add cors policy
+            services.AddCors(options =>
+            {
+                options.AddPolicy("AllowFrontend", policy =>
+                {
+                    policy
+                    .WithOrigins("http://localhost:5173", "https://localhost:5173")
+                    .AllowAnyMethod()
+                    .AllowCredentials()
+                    .AllowAnyHeader();
+                });
+            });
+
             return services;
         }
     }

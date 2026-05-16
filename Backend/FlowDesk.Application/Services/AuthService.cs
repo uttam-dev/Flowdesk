@@ -42,6 +42,8 @@ namespace FlowDesk.Application.Services
             return new AuthResponseDto
             {
                 Name = user.FullName,
+                Email = user.Email,
+                Role = user.Role.RoleName,
                 AccessToken = accessToken,
                 RefreshToken = refreshToken
             };
@@ -68,7 +70,6 @@ namespace FlowDesk.Application.Services
             var newAccessToken = _jwtService.GenerateAccessToken(user);
             var newRefreshToken = _jwtService.GenerateRefreshToken();
 
-            token.IsRevoked = true;
             await _refreshTokenService.SaveRefreshToken(user.UserId, newRefreshToken);
 
             _logger.LogInformation("Refresh token rotated for UserId: {UserId}", user.UserId);

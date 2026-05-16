@@ -26,6 +26,7 @@ namespace FlowDesk.Infrastructure
             services.AddScoped<IRequestHistoryRepository, RequestHistoryRepository>();
             services.AddScoped<ICommentRepository, CommentRepository>();
             services.AddScoped<ICategoryRepository, CategoryRepository>();
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 
             return services;
