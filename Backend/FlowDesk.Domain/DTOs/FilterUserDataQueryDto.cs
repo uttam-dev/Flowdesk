@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace FlowDesk.Domain.DTOs
+﻿namespace FlowDesk.Domain.DTOs
 {
     public class FilterUserDataQueryDto
     {

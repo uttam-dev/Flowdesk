@@ -2,8 +2,6 @@
 using FlowDesk.Application.Features.Users.DTOs;
 using FlowDesk.Application.Features.Users.Queries;
 using FlowDesk.Domain.DTOs;
-using FlowDesk.Domain.Enums;
-using FlowDesk.Domain.Utils;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -39,6 +37,24 @@ namespace FlowDesk.Api.Controllers
             var user = await _mediator.Send(new GetUserByIdQuery(id));
             return Ok(new ApiResponseDto() { Message = "User fetched successfully.", Data = user });
         }
+
+        //Get manager's
+        [Authorize("RequireAdminRole")]
+        [HttpGet("managers")]
+        public async Task<IActionResult> GetManagers()
+        {
+            var managers = await _mediator.Send(new GetManagersQuery());
+            return Ok(new ApiResponseDto() { Message = "Managers fetched successfully.", Data = managers });
+        }
+
+        [Authorize("RequireAdminRole")]
+        [HttpGet("roles")]
+        public async Task<IActionResult> GetRoles()
+        {
+            var roles = await _mediator.Send(new GetRolesQuery());
+            return Ok(new ApiResponseDto() { Message = "Roles fetched successfully.", Data = roles });
+        } 
+
 
         //Get current user details
         [Authorize]

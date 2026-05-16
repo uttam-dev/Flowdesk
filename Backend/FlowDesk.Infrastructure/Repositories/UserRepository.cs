@@ -1,6 +1,8 @@
-﻿using FlowDesk.Domain.DTOs;
+﻿using FlowDesk.Application.Features.Users.DTOs;
+using FlowDesk.Domain.DTOs;
 using FlowDesk.Domain.Entities;
 using FlowDesk.Domain.Interfaces;
+using FlowDesk.Domain.Utils;
 using FlowDesk.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -39,7 +41,14 @@ namespace FlowDesk.Infrastructure.Repositories
                 .Where(u => u.IsActive && !u.IsDeleted);
         }
 
-        public async Task<IReadOnlyList<User>> GetAllAsync(FilterUserDataQueryDto filter)
+        public async Task<List<User>> GetManagersAsync()
+        {
+            return await _context.Users.Include(u => u.Role)
+                .Where(u => u.Role.RoleName == RoleName.Manager && !u.IsDeleted)
+                .ToListAsync();
+        }
+
+        public async Task<(int,IReadOnlyList<User>)> GetAllAsync(FilterUserDataQueryDto filter)
         {
             var query = _context.Users
                 .Include(u => u.Role)
@@ -54,12 +63,13 @@ namespace FlowDesk.Infrastructure.Repositories
             if (filter.IsActive.HasValue)
                 query = query.Where(u => u.IsActive == filter.IsActive.Value);
 
+            var totalPages = query.Count();
             var users = await query
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize)
                 .ToListAsync();
 
-            return users;
+            return (totalPages,users);
         }
 
         public async Task<User?> GetByEmailAsync(string email)

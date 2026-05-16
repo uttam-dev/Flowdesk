@@ -12,7 +12,7 @@ namespace FlowDesk.Application.Features.Users.Queries
     {
         public async Task<PagedResult<UserResponseDto>> Handle(GetAllUsersQuery request, CancellationToken cancellationToken)
         {
-            var users = await userRepo.GetAllAsync(request.query);
+            var (totalCount,users) = await userRepo.GetAllAsync(request.query);
 
             var mapped = users.Select(u => new UserResponseDto
             {
@@ -26,7 +26,7 @@ namespace FlowDesk.Application.Features.Users.Queries
                 UpdatedOn = u.UpdatedOn
             }).ToList();
 
-            int totalCount = users.Count;
+            
 
             return new PagedResult<UserResponseDto>
             {

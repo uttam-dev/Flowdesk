@@ -1,8 +1,5 @@
-﻿using FlowDesk.Domain.DTOs;
-using FlowDesk.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using FlowDesk.Domain.Entities;
+using FlowDesk.Domain.DTOs;
 
 namespace FlowDesk.Domain.Interfaces
 {
@@ -10,7 +7,8 @@ namespace FlowDesk.Domain.Interfaces
     {
         Task<User?> GetByIdAsync(int userId);
         Task<User?> GetByEmailAsync(string email);
-        Task<IReadOnlyList<User>> GetAllAsync(FilterUserDataQueryDto queryDto);
+        Task<List<User>> GetManagersAsync();
+        Task<(int, IReadOnlyList<User>)> GetAllAsync(FilterUserDataQueryDto queryDto);
         Task<IQueryable<User>> GetActiveUsersAsync();
         Task<User> AddAsync(User user);
         Task<User> Update(User user);
