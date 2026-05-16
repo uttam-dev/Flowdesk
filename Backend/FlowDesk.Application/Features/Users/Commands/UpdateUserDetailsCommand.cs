@@ -8,19 +8,11 @@ namespace FlowDesk.Application.Features.Users.Commands
     public record UpdateUserDetailsCommand(int userId, UpdateUserDetailsDto userDto)
      : MediatR.IRequest<UserResponseDto>;
 
-    public class UpdateUserDetailsCommandHandler
+    public class UpdateUserDetailsCommandHandler(
+            Domain.Interfaces.IUserRepository _userRepository,
+            AutoMapper.IMapper _mapper)
         : MediatR.IRequestHandler<UpdateUserDetailsCommand, UserResponseDto>
     {
-        private readonly Domain.Interfaces.IUserRepository _userRepository;
-        private readonly AutoMapper.IMapper _mapper;
-
-        public UpdateUserDetailsCommandHandler(
-            Domain.Interfaces.IUserRepository userRepository,
-            AutoMapper.IMapper mapper)
-        {
-            _userRepository = userRepository;
-            _mapper = mapper;
-        }
 
         public async Task<UserResponseDto> Handle(
             UpdateUserDetailsCommand request,
@@ -35,6 +27,7 @@ namespace FlowDesk.Application.Features.Users.Commands
 
             // Only updates non-null fields from DTO
             _mapper.Map(request.userDto, user);
+            user.UpdatedOn = DateTime.UtcNow;
 
             var updatedUser = await _userRepository.Update(user);
 

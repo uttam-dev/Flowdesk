@@ -22,7 +22,8 @@ namespace FlowDesk.Application.Features.Users.Queries
                 RoleName = u.Role.RoleName,
                 ManagerName = u.Manager?.FullName,
                 IsActive = u.IsActive,
-                CreatedOn = u.CreatedOn
+                CreatedOn = u.CreatedOn,
+                UpdatedOn = u.UpdatedOn
             }).ToList();
 
             int totalCount = users.Count;

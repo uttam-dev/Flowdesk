@@ -9,5 +9,6 @@
         public string? ManagerName { get; set; } = null;
         public bool IsActive { get; set; } = true;
         public DateTime CreatedOn { get; set; }
+        public DateTime? UpdatedOn { get; set; }
     }
 }

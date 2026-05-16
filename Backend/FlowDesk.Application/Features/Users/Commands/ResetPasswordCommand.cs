@@ -14,6 +14,8 @@ namespace FlowDesk.Application.Features.Users.Commands
                 throw new Common.Exceptions.NotFoundException("User not found.");
             }
             user.PasswordHash = PasswordService.HashPassword(request.ResetPasswordDto.NewPassword);
+
+            user.UpdatedOn = DateTime.UtcNow;
             await userRepository.Update(user);
         }
     }
