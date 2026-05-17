@@ -56,17 +56,6 @@ namespace FlowDesk.Api.Controllers
         }
 
 
-        //Get current user details
-        [Authorize]
-        [HttpGet("me")]
-        public async Task<IActionResult> GetCurrentUserDetails()
-        {
-            var userId = Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
-
-            var user = await _mediator.Send(new GetUserByIdQuery(userId));
-            return Ok(new ApiResponseDto() { Message = "Current user details fetched successfully.", Data = user });
-        }
-
         [Authorize(policy: "RequireAdminRole")]
         //Create new user
         [HttpPost]

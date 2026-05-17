@@ -9,6 +9,7 @@ using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+//using Microsoft.OpenApi.Models;
 
 namespace FlowDesk.Api
 {
@@ -23,7 +24,44 @@ namespace FlowDesk.Api
             .AddInfrastructure(configuration);
 
             // add swagger
-            services.AddSwaggerGen();
+            //services.AddSwaggerGen(options =>
+            //{
+            //    options.SwaggerDoc("v1", new OpenApiInfo
+            //    {
+            //        Title = "FlowDesk API",
+            //        Version = "v1"
+            //    });
+
+            //    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+            //    {
+            //        Name = "Authorization",
+            //        Type = SecuritySchemeType.Http,
+            //        Scheme = "Bearer",
+            //        BearerFormat = "JWT",
+            //        In = ParameterLocation.Header,
+            //        Description = "Enter your JWT token. Example: eyJhbGci..."
+            //    });
+
+            //    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+            //    {
+            //        {
+            //            new OpenApiSecurityScheme
+            //            {
+            //                Reference = new OpenApiReference
+            //                {
+            //                    Type = ReferenceType.SecurityScheme,
+            //                    Id = "Bearer"
+            //                }
+            //            },
+            //            Array.Empty<string>()
+            //        }
+            //    });
+            //});
+
+            services.AddOpenApi(options =>
+            {
+                options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
+            });
 
             //Fluent Validation
             services.AddValidatorsFromAssemblyContaining<UserValidator>();
@@ -92,10 +130,9 @@ namespace FlowDesk.Api
                 options.AddPolicy("RequireManagerRole", policy => policy.RequireRole(RoleName.Manager));
                 options.AddPolicy("RequireSupportRole", policy => policy.RequireRole(RoleName.Support));
                 options.AddPolicy("RequireEmployeeRole", policy => policy.RequireRole(RoleName.Employee));
-                options.AddPolicy("RequireManagerOrAdminRole", policy => policy.RequireRole(RoleName.Manager, RoleName.Admin));
-                options.AddPolicy("RequireSupportOrAdminRole", policy => policy.RequireRole(RoleName.Support, RoleName.Admin));
                 options.AddPolicy("RequireApprovel", policy => policy.RequireRole(RoleName.Manager));
-                options.AddPolicy("RequireAnyRole", policy => policy.RequireRole(RoleName.Admin, RoleName.Manager, RoleName.Support, RoleName.Employee));
+                options.AddPolicy("CanCreateRequest", policy => policy.RequireRole(RoleName.Employee, RoleName.Manager));
+                options.AddPolicy("CanCreateRequestComment", policy => policy.RequireRole(RoleName.Admin, RoleName.Support, RoleName.Manager));
             });
 
             // Add cors policy

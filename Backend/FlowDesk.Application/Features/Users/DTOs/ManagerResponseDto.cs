@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace FlowDesk.Application.Features.Users.DTOs
+﻿namespace FlowDesk.Application.Features.Users.DTOs
 {
     public class ManagerResponseDto
     {

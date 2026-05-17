@@ -1,5 +1,4 @@
-﻿using FlowDesk.Application.Features.Users.DTOs;
-using FlowDesk.Domain.DTOs;
+﻿using FlowDesk.Domain.DTOs;
 using FlowDesk.Domain.Entities;
 using FlowDesk.Domain.Interfaces;
 using FlowDesk.Domain.Utils;
@@ -34,9 +33,9 @@ namespace FlowDesk.Infrastructure.Repositories
             return await _context.Users.AnyAsync(u => u.UserId == userId && !u.IsDeleted);
         }
 
-        public async Task<IQueryable<User>> GetActiveUsersAsync()
+        public async Task<IQueryable<User>> GetActivSeUsersAsync()
         {
-            return  _context.Users
+            return _context.Users
                  .AsNoTracking()
                 .Where(u => u.IsActive && !u.IsDeleted);
         }
@@ -48,7 +47,7 @@ namespace FlowDesk.Infrastructure.Repositories
                 .ToListAsync();
         }
 
-        public async Task<(int,IReadOnlyList<User>)> GetAllAsync(FilterUserDataQueryDto filter)
+        public async Task<(int, IReadOnlyList<User>)> GetAllAsync(FilterUserDataQueryDto filter)
         {
             var query = _context.Users
                 .Include(u => u.Role)
@@ -60,17 +59,18 @@ namespace FlowDesk.Infrastructure.Repositories
             // Optional filters
             if (!string.IsNullOrWhiteSpace(filter.Role))
                 query = query.Where(u => u.Role.RoleName.ToLower() == filter.Role.ToLower());
-                
+
             if (filter.IsActive.HasValue)
                 query = query.Where(u => u.IsActive == filter.IsActive.Value);
 
             var totalPages = query.Count();
             var users = await query
+                .OrderBy(x => x.UserId)
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize)
                 .ToListAsync();
 
-            return (totalPages,users);
+            return (totalPages, users);
         }
 
         public async Task<User?> GetByEmailAsync(string email)
@@ -106,5 +106,21 @@ namespace FlowDesk.Infrastructure.Repositories
             await _context.SaveChangesAsync();
             return user;
         }
+
+        public async Task<Domain.DTOs.ManagerResponseDto?> GetManagerByEmployeeId(int id)
+        {
+            var manager = await _context.Users
+                .Include(u => u.Manager)
+                .Where(u => u.UserId == id)
+                .Select(u => new Domain.DTOs.ManagerResponseDto
+                {
+                    ManagerId = u.Manager != null ? u.Manager.UserId : 0,
+                    FullName = u.Manager != null ? u.Manager.FullName : null
+                })
+                .FirstOrDefaultAsync();
+
+            return manager;
+        }
+
     }
 }

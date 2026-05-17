@@ -10,21 +10,18 @@ namespace FlowDesk.Infrastructure.Data.Config
         {
             builder.HasKey(x => x.RequestHistoryId);
 
-            builder.Property(x => x.OldStatus)
-                .IsRequired();
+            //builder.Property(x => x.OldStatus)
+            //    .IsRequired();
 
             builder.Property(x => x.NewStatus)
                 .IsRequired();
 
             builder.Property(x => x.ChangedOn)
-                .IsRequired();
+               .HasDefaultValueSql("GETUTCDATE()")
+               .ValueGeneratedOnAdd();
 
-            builder.Property(x => x.Remarks)
-                .HasMaxLength(500)
-                .IsRequired(false);
-
-            builder.Property(x => x.ChangedById)
-                .IsRequired();
+            //builder.Property(x => x.ChangedById)
+            //    .IsRequired();
 
             builder.Property(x => x.RequestId)
                 .IsRequired();
@@ -39,6 +36,11 @@ namespace FlowDesk.Infrastructure.Data.Config
                 .WithMany(r => r.Histories)
                 .HasForeignKey(h => h.RequestId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasOne(x => x.Remarks)
+                .WithMany(r => r.RequestHistories)
+                .HasForeignKey(x => x.RemarksId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(h => h.ChangedByUser)
                 .WithMany(u => u.RequestHistories)

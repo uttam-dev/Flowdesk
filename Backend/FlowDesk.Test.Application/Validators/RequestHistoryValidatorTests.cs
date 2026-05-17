@@ -19,7 +19,7 @@ namespace FlowDesk.Application.Tests.Validators
                 OldStatus = RequestStatusEnum.Open,
                 NewStatus = RequestStatusEnum.InProgress,
                 ChangedOn = DateTime.UtcNow.AddSeconds(-1),
-                Remarks = "Valid"
+
             };
 
             var result = _validator.TestValidate(model);
@@ -72,19 +72,6 @@ namespace FlowDesk.Application.Tests.Validators
             var result = _validator.TestValidate(model);
 
             result.ShouldHaveValidationErrorFor(x => x.ChangedOn);
-        }
-
-        [Fact]
-        public void Should_Fail_When_Remarks_Too_Long()
-        {
-            var model = new RequestHistory
-            {
-                Remarks = new string('a', 501)
-            };
-
-            var result = _validator.TestValidate(model);
-
-            result.ShouldHaveValidationErrorFor(x => x.Remarks);
         }
     }
 }

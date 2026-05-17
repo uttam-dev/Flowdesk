@@ -4,6 +4,7 @@ using FlowDesk.Domain.DTOs;
 using FlowDesk.Infrastructure.Data;
 using FlowDesk.Infrastructure.Data.Seed;
 using Microsoft.AspNetCore.Mvc;
+using Scalar.AspNetCore;
 using Serilog;
 
 
@@ -67,8 +68,10 @@ using (var scope = app.Services.CreateScope())
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
-    app.UseSwagger();
-    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json","FlowDesk Api's"));
+    app.MapScalarApiReference(options =>
+    {
+        options.Title = "FlowDesk API";
+    });
 }
 
 app.UseMiddleware<GlobalExceptionMiddleware>();

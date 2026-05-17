@@ -2,17 +2,27 @@
 using FlowDesk.Domain.DTOs;
 using FlowDesk.Domain.Interfaces;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 
 namespace FlowDesk.Application.Features.Users.Queries
 {
     public record GetAllUsersQuery(FilterUserDataQueryDto query): IRequest<PagedResult<UserResponseDto>>;
-    
-    public class GetAllUsersQueryHandler(IUserRepository userRepo) : IRequestHandler<GetAllUsersQuery, PagedResult<UserResponseDto>>
+
+    public class GetAllUsersQueryHandler(IUserRepository userRepo, ILogger<GetAllUsersQueryHandler> logger) : IRequestHandler<GetAllUsersQuery, PagedResult<UserResponseDto>>
     {
         public async Task<PagedResult<UserResponseDto>> Handle(GetAllUsersQuery request, CancellationToken cancellationToken)
         {
-            var (totalCount,users) = await userRepo.GetAllAsync(request.query);
+            // logging
+            logger.LogInformation("Starting {Operation} with {@Request}", nameof(GetAllUsersQueryHandler), request);
+
+            // logging
+            logger.LogInformation("Fetching {Entity} list with pagination {@Request}", "User", request.query);
+
+            var (totalCount, users) = await userRepo.GetAllAsync(request.query);
+
+            // logging
+            logger.LogInformation("Mapping {Entity} list to DTOs", "User");
 
             var mapped = users.Select(u => new UserResponseDto
             {
@@ -26,7 +36,8 @@ namespace FlowDesk.Application.Features.Users.Queries
                 UpdatedOn = u.UpdatedOn
             }).ToList();
 
-            
+            // logging
+            logger.LogInformation("Successfully completed {Operation} for {Entity} list", nameof(GetAllUsersQueryHandler), "User");
 
             return new PagedResult<UserResponseDto>
             {

@@ -32,7 +32,8 @@ namespace FlowDesk.Infrastructure.Data.Config
                 .IsRequired();
 
             builder.Property(x => x.CreatedOn)
-                .IsRequired();
+               .HasDefaultValueSql("GETUTCDATE()")
+               .ValueGeneratedOnAdd();
 
             // Role relation
             builder.HasOne(x => x.Role)

@@ -17,7 +17,8 @@ namespace FlowDesk.Infrastructure.Data.Config
                 .IsRequired();
 
             builder.Property(x => x.CreatedOn)
-                .IsRequired();
+                .HasDefaultValueSql("GETUTCDATE()")
+                .ValueGeneratedOnAdd();
 
             builder.Property(x => x.RequestId)
                 .IsRequired();

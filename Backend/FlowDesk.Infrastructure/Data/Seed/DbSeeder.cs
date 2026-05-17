@@ -3,6 +3,7 @@ using FlowDesk.Domain.Entities;
 using FlowDesk.Domain.Enums;
 using FlowDesk.Domain.Utils;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection.Emit;
 
 namespace FlowDesk.Infrastructure.Data.Seed
 {
@@ -63,6 +64,44 @@ namespace FlowDesk.Infrastructure.Data.Seed
                 context.Users.AddRange(dummyUsers);
             }
 
+            if (!context.MasterRemarks.Any())
+            {
+                context.MasterRemarks.AddRange(
+
+                        // APPROVE (1)
+                        new MasterRemarks { RemarksText = "Valid request", ActionType = RemarksActionTypeEnum.Approve },
+                        new MasterRemarks { RemarksText = "Approved as per policy", ActionType = RemarksActionTypeEnum.Approve },
+                        new MasterRemarks { RemarksText = "Budget available", ActionType = RemarksActionTypeEnum.Approve },
+                        new MasterRemarks { RemarksText = "Meets criteria", ActionType = RemarksActionTypeEnum.Approve },
+                        new MasterRemarks { RemarksText = "Manager approved", ActionType = RemarksActionTypeEnum.Approve },
+
+                        // REJECT (2)
+                        new MasterRemarks { RemarksText = "Invalid request", ActionType = RemarksActionTypeEnum.Reject },
+                        new MasterRemarks { RemarksText = "Insufficient details", ActionType = RemarksActionTypeEnum.Reject },
+                        new MasterRemarks { RemarksText = "Duplicate request", ActionType = RemarksActionTypeEnum.Reject },
+                        new MasterRemarks { RemarksText = "Policy violation", ActionType = RemarksActionTypeEnum.Reject },
+                        new MasterRemarks { RemarksText = "Budget not approved", ActionType = RemarksActionTypeEnum.Reject },
+                        new MasterRemarks { RemarksText = "Request not required", ActionType = RemarksActionTypeEnum.Reject },
+
+                        // ASSIGN (3)
+                        new MasterRemarks { RemarksText = "Assigned to support", ActionType = RemarksActionTypeEnum.Assign },
+                        new MasterRemarks { RemarksText = "Assigned based on workload", ActionType = RemarksActionTypeEnum.Assign },
+                        new MasterRemarks { RemarksText = "Assigned to appropriate team", ActionType = RemarksActionTypeEnum.Assign },
+                        new MasterRemarks { RemarksText = "Urgent assignment", ActionType = RemarksActionTypeEnum.Assign },
+
+                        // STATUS CHANGE (4) - InProgress
+                        new MasterRemarks { RemarksText = "Work started", ActionType = RemarksActionTypeEnum.RequestChanges },
+                        new MasterRemarks { RemarksText = "Investigation in progress", ActionType = RemarksActionTypeEnum.RequestChanges },
+                        new MasterRemarks { RemarksText = "Task picked up", ActionType = RemarksActionTypeEnum.RequestChanges },
+                        new MasterRemarks { RemarksText = "Processing request", ActionType = RemarksActionTypeEnum.RequestChanges },
+
+                        // STATUS CHANGE (4) - Resolved
+                        new MasterRemarks { RemarksText = "Issue resolved", ActionType = RemarksActionTypeEnum.RequestChanges },
+                        new MasterRemarks { RemarksText = "Request completed", ActionType = RemarksActionTypeEnum.RequestChanges },
+                        new MasterRemarks { RemarksText = "Service delivered", ActionType = RemarksActionTypeEnum.RequestChanges },
+                        new MasterRemarks { RemarksText = "Fixed successfully", ActionType = RemarksActionTypeEnum.RequestChanges }
+                    );
+            }
             await context.SaveChangesAsync();
         }
     }

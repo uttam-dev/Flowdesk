@@ -15,7 +15,7 @@ namespace FlowDesk.Api.Controllers
     public class CategoriesController(IMediator _mediator, IMapper _mapper) : ControllerBase
     {
         // GET: api/categories
-        [Authorize(policy: "RequireAnyRole")]
+        [Authorize]
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] FilterCategoryDataQueryDto query)
         {
@@ -54,7 +54,7 @@ namespace FlowDesk.Api.Controllers
         }
 
         // GET: api/categories/{id}
-        [Authorize(policy: "RequireAnyRole")]
+        [Authorize]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -80,6 +80,7 @@ namespace FlowDesk.Api.Controllers
         }
 
         // PUT: api/categories/{id}
+        [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, UpdateCategoryDto dto)
         {
@@ -88,19 +89,21 @@ namespace FlowDesk.Api.Controllers
         }
 
         // PATCH: api/categories/{id}/active
+        [Authorize(policy: "RequireAdminRole")]
         [HttpPatch("{id}/active")]
         public async Task<IActionResult> Activate(int id)
         {
             var result = await _mediator.Send(new ActivateCategoryCommand(id));
-            return Ok(new ApiResponseDto() { Message = "Category activate successfully"});
+            return Ok(new ApiResponseDto() { Message = "Category activate successfully" });
         }
 
         // PATCH: api/categories/{id}/deactive
+        [Authorize(policy: "RequireAdminRole")]
         [HttpPatch("{id}/deactive")]
         public async Task<IActionResult> Deactivate(int id)
         {
             var result = await _mediator.Send(new DeactivateCategoryCommand(id));
-            return Ok(new ApiResponseDto() { Message = "Category deactive successfully"});
+            return Ok(new ApiResponseDto() { Message = "Category deactive successfully" });
         }
 
     }

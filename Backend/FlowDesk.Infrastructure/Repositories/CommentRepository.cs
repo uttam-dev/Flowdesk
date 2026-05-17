@@ -7,10 +7,11 @@ namespace FlowDesk.Infrastructure.Repositories
 {
     public class CommentRepository(AppDbContext _context) : ICommentRepository
     {
-        public async Task AddAsync(Comment comment)
+        public async Task<Comment> AddAsync(Comment comment)
         {
             await _context.Comments.AddAsync(comment);
             await _context.SaveChangesAsync();
+            return comment;
         }
 
         public Task<bool> ExistsAsync(int commentId)
@@ -30,7 +31,12 @@ namespace FlowDesk.Infrastructure.Repositories
 
         public async Task<IReadOnlyList<Comment>> GetByRequestIdAsync(int requestId)
         {
-            return await _context.Comments.Where(c => c.RequestId == requestId).AsNoTracking().ToListAsync();
+            return await _context.Comments
+                .Include(c => c.Commenter)
+                    .ThenInclude(u => u.Role)
+                .Where(c => c.RequestId == requestId)
+                .OrderBy(c => c.CreatedOn)
+                .ToListAsync();
         }
 
         public async Task HardDelete(Comment comment)

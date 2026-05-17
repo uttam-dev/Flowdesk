@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using FlowDesk.Application.Features.Categories.DTOs;
+using FlowDesk.Application.Features.Requests.DTOs;
 using FlowDesk.Application.Features.Users.DTOs;
 using FlowDesk.Domain.Entities;
 using System;
@@ -22,12 +23,28 @@ namespace FlowDesk.Application.Common.Mappings
             //Category
             CreateMap<Category, CategoryAdminResponseDto>();
             CreateMap<Category, CategoryBasicResponseDto>();
-            CreateMap<CategoryResponseDto,CategoryAdminResponseDto>();
-            CreateMap<CategoryResponseDto,CategoryBasicResponseDto>();
+            CreateMap<CategoryResponseDto, CategoryAdminResponseDto>();
+            CreateMap<CategoryResponseDto, CategoryBasicResponseDto>();
             CreateMap<UpdateCategoryDto, Category>();
             CreateMap<Category, CategoryResponseDto>();
 
-            
+            //Request
+            CreateMap<CreateRequestDto, Request>();
+            CreateMap<Request, EmployeeRequestResponseDto>();
+            CreateMap<Request, RequestResponseDto>()
+                        .ForMember(d => d.FullName,
+                            opt => opt.MapFrom(s => s.Employee != null ? s.Employee.FullName : null))
+                        .ForMember(d => d.CategoryName,
+                            opt => opt.MapFrom(s => s.Category != null ? s.Category.CategoryName : null))
+                        .ForMember(d => d.AssignedUser,
+                            opt => opt.MapFrom(s => s.AssignedUser != null ? s.AssignedUser.FullName : null))
+                        .ForMember(d => d.ApprovalName,
+                            opt => opt.MapFrom(s => s.Employee != null && s.Employee.Manager != null
+                                ? s.Employee.Manager.FullName
+                                : null));
+           //Comment
+           CreateMap<Comment, CommentResponseDto>();
+
         }
     }
 }

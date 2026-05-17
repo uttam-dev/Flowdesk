@@ -7,7 +7,7 @@ namespace FlowDesk.Domain.Interfaces
             Task<Comment?> GetByIdAsync(int commentId);
             Task<IReadOnlyList<Comment>> GetAllAsync();
             Task<IReadOnlyList<Comment>> GetByRequestIdAsync(int requestId);
-            Task AddAsync(Comment comment);
+            Task<Comment> AddAsync(Comment comment);
             Task Update(Comment comment);
             Task HardDelete(Comment comment);
             Task<bool> ExistsAsync(int commentId);
