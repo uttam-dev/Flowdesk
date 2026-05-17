@@ -52,14 +52,19 @@ namespace FlowDesk.Infrastructure.Repositories
             // Admin no filter
 
             // Existing filters
-            if (filter.Status != 0)
+            if (filter.Status != null)
             {
                 query = query.Where(r => (int)r.Status == filter.Status);
             }
 
-            if (filter.CategoryId != 0)
+            if (filter.CategoryId != null)
             {
                 query = query.Where(r => r.CategoryId == filter.CategoryId);
+            }
+
+            if (filter.Priority != null)
+            {
+                query = query.Where(r => (int)r.Priority == filter.Priority);
             }
 
             var totalCount = await query.CountAsync();
@@ -85,12 +90,12 @@ namespace FlowDesk.Infrastructure.Repositories
                 .AsQueryable();
 
             // Existing filters
-            if (filter.Status != 0)
+            if (filter.Status != null)
             {
                 query = query.Where(r => (int)r.Status == filter.Status);
             }
 
-            if (filter.CategoryId != 0)
+            if (filter.CategoryId != null)
             {
                 query = query.Where(r => r.CategoryId == filter.CategoryId);
             }

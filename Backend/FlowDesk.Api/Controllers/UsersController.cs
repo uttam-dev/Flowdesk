@@ -47,6 +47,17 @@ namespace FlowDesk.Api.Controllers
             return Ok(new ApiResponseDto() { Message = "Managers fetched successfully.", Data = managers });
         }
 
+        //Get manager's
+        [Authorize("RequireAdminRole")]
+        [HttpGet("support")]
+        public async Task<IActionResult> GetSupportUsers()
+        {
+            var supportUsers = await _mediator.Send(new GetSupportUserQuery());
+            return Ok(new ApiResponseDto() { Message = "Support users fetched successfully.", Data = supportUsers });
+        }
+
+        
+        //Get all roles
         [Authorize("RequireAdminRole")]
         [HttpGet("roles")]
         public async Task<IActionResult> GetRoles()

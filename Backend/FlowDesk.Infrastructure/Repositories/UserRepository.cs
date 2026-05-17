@@ -46,6 +46,12 @@ namespace FlowDesk.Infrastructure.Repositories
                 .Where(u => u.Role.RoleName == RoleName.Manager && !u.IsDeleted)
                 .ToListAsync();
         }
+        public async Task<List<User>> GetSupportUsersAsync()
+        {
+            return await _context.Users.Include(u => u.Role)
+                .Where(u => u.Role.RoleName == RoleName.Support && !u.IsDeleted)
+                .ToListAsync();
+        }
 
         public async Task<(int, IReadOnlyList<User>)> GetAllAsync(FilterUserDataQueryDto filter)
         {

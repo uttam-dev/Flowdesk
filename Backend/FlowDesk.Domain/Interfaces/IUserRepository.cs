@@ -8,6 +8,7 @@ namespace FlowDesk.Domain.Interfaces
         Task<User?> GetByIdAsync(int userId);
         Task<User?> GetByEmailAsync(string email);
         Task<List<User>> GetManagersAsync();
+        Task<List<User>> GetSupportUsersAsync();
         Task<ManagerResponseDto?> GetManagerByEmployeeId(int id);
         Task<(int, IReadOnlyList<User>)> GetAllAsync(FilterUserDataQueryDto queryDto);
         Task<User> AddAsync(User user);

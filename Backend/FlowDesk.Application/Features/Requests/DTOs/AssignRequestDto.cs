@@ -9,6 +9,7 @@ namespace FlowDesk.Application.Features.Requests.DTOs
     {
         [Required(ErrorMessage = "Assign id is required")]
         public int AssignToId { get; set; }
-        public int RemarksId { get; set; }
+        public int? RemarksId { get; set; }
+        public string? CommentText { get; set; }
     }
 }
