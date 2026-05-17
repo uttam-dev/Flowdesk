@@ -11,6 +11,7 @@ namespace FlowDesk.Application.Features.Requests.Commands
     public record AssignRequestCommand(int RequestId, int CurrentUserId, AssignRequestDto Dto) : IRequest;
     public class AssignRequestCommandHandler(IUserRepository userRepository,
         IRequestRepository requestRepository,
+        ICommentRepository commentRepository,
         IRequestHistoryRepository requestHistoryRepository) : IRequestHandler<AssignRequestCommand>
     {
         public async Task Handle(AssignRequestCommand request, CancellationToken cancellationToken)
@@ -39,7 +40,15 @@ namespace FlowDesk.Application.Features.Requests.Commands
             fetchedRequest.Status = Domain.Enums.RequestStatusEnum.Assigned;
             fetchedRequest.AssignedToId = request.Dto.AssignToId;
             await requestRepository.Update(fetchedRequest);
-
+            if (request.Dto.CommentText != null)
+            {
+                await commentRepository.AddAsync(new Domain.Entities.Comment
+                {
+                    CommentById = request.CurrentUserId,
+                    CommentText = request.Dto.CommentText,
+                    RequestId = fetchedRequest.RequestId
+                });
+            }
         }
     }
 }

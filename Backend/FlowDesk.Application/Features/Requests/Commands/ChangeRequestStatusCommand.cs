@@ -11,6 +11,7 @@ namespace FlowDesk.Application.Features.Requests.Commands
 
     public class UpdateRequestStatusCommandHandler(
                 IRequestRepository requestRepository,
+                ICommentRepository commentRepository,
                 IRequestHistoryRepository historyRepository)
                 : IRequestHandler<UpdateRequestStatusCommand>
     {
@@ -68,6 +69,17 @@ namespace FlowDesk.Application.Features.Requests.Commands
                 NewStatus = newStatus,
                 RemarksId = request.Dto.RemarksId,
             });
+
+            // add comment
+            if (request.Dto.CommentText != null)
+            {
+                await commentRepository.AddAsync(new Comment
+                {
+                    CommentById = request.UserId,
+                    CommentText = request.Dto.CommentText,
+                    RequestId = req.RequestId
+                });
+            }
 
             //System update history
             if (newStatus == RequestStatusEnum.Resolved)

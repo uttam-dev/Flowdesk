@@ -8,7 +8,7 @@ namespace FlowDesk.Application.Features.Requests.Commands
 {
     public record ApproveRequestCommand(int RequestId, int UserId, RemarkDto Dto) : IRequest;
 
-    public class ApproveRequestCommandHandler(IRequestRepository requestRepository, IRequestHistoryRepository requestHistory) : IRequestHandler<ApproveRequestCommand>
+    public class ApproveRequestCommandHandler(IRequestRepository requestRepository, IRequestHistoryRepository requestHistory, ICommentRepository commentRepository) : IRequestHandler<ApproveRequestCommand>
     {
         async Task IRequestHandler<ApproveRequestCommand>.Handle(ApproveRequestCommand request, CancellationToken cancellationToken)
         {
@@ -34,7 +34,15 @@ namespace FlowDesk.Application.Features.Requests.Commands
             };
             fetchedRequest.Status = RequestStatusEnum.Approved;
             await requestRepository.Update(fetchedRequest);
-
+            if (request.Dto.CommentText != null)
+            {
+                await commentRepository.AddAsync(new Domain.Entities.Comment
+                {
+                    CommentById = request.UserId,
+                    CommentText = request.Dto.CommentText,
+                    RequestId = request.RequestId
+                });
+            }
             await requestHistory.AddAsync(requestHistoryEntry);
 
         }
