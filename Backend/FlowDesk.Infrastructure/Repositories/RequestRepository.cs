@@ -67,6 +67,10 @@ namespace FlowDesk.Infrastructure.Repositories
                 query = query.Where(r => (int)r.Priority == filter.Priority);
             }
 
+            if (filter.RequestNumber != null)
+            {
+                query = query.Where(r => r.RequestNumber == filter.RequestNumber);
+            }
             var totalCount = await query.CountAsync();
 
             var items = await query
