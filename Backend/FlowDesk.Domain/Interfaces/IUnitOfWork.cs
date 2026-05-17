@@ -8,5 +8,6 @@ namespace FlowDesk.Domain.Interfaces
     public interface IUnitOfWork
     {
         Task<IReadOnlyList<RoleResponseDto>> GetAllRoles();
+
     }
 }

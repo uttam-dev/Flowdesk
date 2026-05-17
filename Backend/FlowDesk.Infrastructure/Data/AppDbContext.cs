@@ -15,6 +15,7 @@ namespace FlowDesk.Infrastructure.Data
         public DbSet<Request> Requests { get; set; }
         public DbSet<RequestHistory> RequestHistories { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
+        public DbSet<MasterRemarks> MasterRemarks { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

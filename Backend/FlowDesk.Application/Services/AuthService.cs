@@ -41,19 +41,19 @@ namespace FlowDesk.Application.Services
 
             return new AuthResponseDto
             {
-                Name = user.FullName,
+                FullName = user.FullName,
                 Email = user.Email,
-                Role = user.Role.RoleName,
+                RoleName = user.Role.RoleName,
                 AccessToken = accessToken,
                 RefreshToken = refreshToken
             };
         }
 
-        public async Task<AuthResponseDto> RefreshTokenAsync(string refreshToken)
+        public async Task<AuthResponseDto> RefreshTokenAsync(RefreshTokenDto Dto)
         {
             _logger.LogInformation("Refresh token request received");
 
-            var token = await _refreshTokenService.GetToken(refreshToken);
+            var token = await _refreshTokenService.GetToken(Dto.RefreshToekn!);
 
             if (token == null || token.ExpiryDate < DateTime.UtcNow)
             {
@@ -76,7 +76,7 @@ namespace FlowDesk.Application.Services
 
             return new AuthResponseDto
             {
-                Name = user.FullName,
+                FullName = user.FullName,
                 AccessToken = newAccessToken,
                 RefreshToken = newRefreshToken
             };

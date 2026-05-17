@@ -33,6 +33,7 @@ namespace FlowDesk.Infrastructure.Repositories
             var totalPages = query.Count();
 
             var categories = await query
+                .OrderBy(x => x.CategoryId)
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize)
                 .ToListAsync();

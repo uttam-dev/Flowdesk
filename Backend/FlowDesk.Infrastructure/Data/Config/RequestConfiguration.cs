@@ -12,7 +12,7 @@ namespace FlowDesk.Infrastructure.Data.Config
 
             builder.Property(x => x.RequestNumber)
                 .IsRequired()
-                .HasMaxLength(20);
+                .HasMaxLength(30);
 
             builder.HasIndex(x => x.RequestNumber)
                 .IsUnique();
@@ -25,7 +25,8 @@ namespace FlowDesk.Infrastructure.Data.Config
                 .IsRequired();
 
             builder.Property(x => x.CreatedOn)
-                .IsRequired();
+                .HasDefaultValueSql("GETUTCDATE()")
+                .ValueGeneratedOnAdd();
 
             builder.Property(x => x.UpdatedOn)
                 .IsRequired();

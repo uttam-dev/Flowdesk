@@ -26,9 +26,6 @@ namespace FlowDesk.Application.Common.Validators
             RuleFor(x => x.ChangedOn)
                 .LessThanOrEqualTo(DateTime.UtcNow)
                 .WithMessage("ChangedOn cannot be in future");
-
-            RuleFor(x => x.Remarks)
-                .MaximumLength(500);
         }
     }
 }
