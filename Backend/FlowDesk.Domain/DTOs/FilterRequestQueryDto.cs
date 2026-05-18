@@ -7,5 +7,6 @@
         public int? Status { get; set; }
         public int? CategoryId { get; set; }
         public int? Priority { get; set; }
+        public string? RequestNumber { get; set; }
     }
 }

@@ -61,6 +61,20 @@ namespace FlowDesk.Api.Controllers
             });
         }
 
+        // Get api/requests/remarks
+        [Authorize]
+        [HttpGet("remarks")]
+        public async Task<IActionResult> GetRequestRemarks([FromQuery] FilterRequestRemarksQueryDto query)
+        {
+            int currentUserId = Convert.ToInt16(User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
+            var result = await _mediator.Send(new GetRequestRemarksQuery(query));
+            return Ok(new ApiResponseDto
+            {
+                Message = "Request remarks fetched successfully",
+                Data = result
+            });
+        }
+
         //// GET: api/requests/{id}
         [Authorize]
         [HttpGet("{id}")]

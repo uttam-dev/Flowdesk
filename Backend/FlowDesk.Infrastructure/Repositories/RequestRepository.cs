@@ -32,7 +32,8 @@ namespace FlowDesk.Infrastructure.Repositories
                 .AsNoTracking()
                 .Include(r => r.Category)
                 .Include(r => r.Employee)
-                    .ThenInclude(e => e!.Manager!)
+                .ThenInclude(e => e.Manager)
+                //.Where(r => r.Category!.IsApprovalRequired == true)
                 .Include(r => r.AssignedUser)
                 .AsQueryable();
 
@@ -67,6 +68,10 @@ namespace FlowDesk.Infrastructure.Repositories
                 query = query.Where(r => (int)r.Priority == filter.Priority);
             }
 
+            if (filter.RequestNumber != null)
+            {
+                query = query.Where(r => r.RequestNumber == filter.RequestNumber);
+            }
             var totalCount = await query.CountAsync();
 
             var items = await query
