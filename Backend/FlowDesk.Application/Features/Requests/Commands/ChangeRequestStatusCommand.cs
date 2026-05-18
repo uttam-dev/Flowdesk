@@ -80,18 +80,23 @@ namespace FlowDesk.Application.Features.Requests.Commands
                     RequestId = req.RequestId
                 });
             }
-
-            //System update history
-            if (newStatus == RequestStatusEnum.Resolved)
+            await historyRepository.AddAsync(new RequestHistory
             {
+                RequestId = req.RequestId,
+                OldStatus = oldStatus,
+                NewStatus = newStatus,
+                ChangedById = request.UserId
+            });
+
+            //Change status bu support user
+            if (newStatus == RequestStatusEnum.Resolved)
                 await historyRepository.AddAsync(new RequestHistory
                 {
                     RequestId = req.RequestId,
-                    OldStatus = oldStatus,
-                    NewStatus = newStatus,
-                    IsSystemGenerated = true,
+                    OldStatus = RequestStatusEnum.Resolved,
+                    NewStatus = RequestStatusEnum.Closed,
+                    IsSystemGenerated = true
                 });
-            }
         }
     }
 }
