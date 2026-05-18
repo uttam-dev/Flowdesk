@@ -32,7 +32,8 @@ namespace FlowDesk.Infrastructure.Repositories
                 .AsNoTracking()
                 .Include(r => r.Category)
                 .Include(r => r.Employee)
-                    .ThenInclude(e => e!.Manager!)
+                .ThenInclude(e => e.Manager)
+                //.Where(r => r.Category!.IsApprovalRequired == true)
                 .Include(r => r.AssignedUser)
                 .AsQueryable();
 
