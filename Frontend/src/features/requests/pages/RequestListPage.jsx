@@ -37,7 +37,7 @@ import {
   setStatusFilter,
   updateRequestStatus,
 } from '../requestSlice.js'
-import { REQUEST_TABS, hasRole } from '../requestUtils.js'
+import { REQUEST_TABS, REQUEST_STATUS, hasRole } from '../requestUtils.js'
 
 export function RequestListPage() {
   const dispatch = useDispatch()
@@ -46,6 +46,7 @@ export function RequestListPage() {
   const authUser = useSelector(selectAuthUser)
   const currentUserId = authUser?.id ?? null
   const isManager = hasRole(roles, 'Manager')
+  const isSupport = hasRole(roles, 'Support')
 
   const items = useSelector(selectRequestList)
   const loading = useSelector(selectRequestLoading)
@@ -60,20 +61,45 @@ export function RequestListPage() {
   const requestNumber = useSelector(selectRequestNumberFilter)
   const activeTab = useSelector(selectRequestActiveTab)
   const mutating = useSelector(selectRequestMutationLoading)
-
+  
+  const filteredItems = useMemo(() => {
+    let result = items
+    if (activeTab === 'resolved') {
+      result = result.filter(
+        (it) =>
+          Number(it.status) === REQUEST_STATUS.Resolved ||
+          Number(it.status) === REQUEST_STATUS.Closed
+      )
+    }
+    if (isSupport) {
+      result = result.filter(
+        (it) =>
+          Number(it.status) === REQUEST_STATUS.Assigned ||
+          Number(it.status) === REQUEST_STATUS.InProgress ||
+          Number(it.status) === REQUEST_STATUS.Resolved ||
+          Number(it.status) === REQUEST_STATUS.Closed
+      )
+    }
+    return result
+  }, [items, isSupport, activeTab])
+  
   const [actionModal, setActionModal] = useState({ open: false, type: null, row: null })
   const [actionError, setActionError] = useState(null)
 
-  const visibleTabs = useMemo(
-    () =>
-      isManager
-        ? [
-            { key: 'my', label: 'My Requests', status: '' },
-            { key: 'team', label: 'Team Requests', status: '' },
-          ]
-        : REQUEST_TABS,
-    [isManager],
-  )
+  const visibleTabs = useMemo(() => {
+    if (isManager) {
+      return [
+        { key: 'my', label: 'My Requests', status: '' },
+        { key: 'team', label: 'Team Requests', status: '' },
+      ]
+    }
+    if (isSupport) {
+      return REQUEST_TABS.filter((tab) =>
+        ['all', 'assigned', 'inprogress', 'resolved'].includes(tab.key)
+      )
+    }
+    return REQUEST_TABS
+  }, [isManager, isSupport])
 
   const listQuery = useCallback(
     () => ({
@@ -99,15 +125,24 @@ export function RequestListPage() {
   }, [isManager, activeTab, dispatch])
 
   useEffect(() => {
+    if (isSupport && !['all', 'assigned', 'inprogress', 'resolved'].includes(activeTab)) {
+      dispatch(setActiveTab({ key: 'all', status: '' }))
+    }
+  }, [isSupport, activeTab, dispatch])
+
+  useEffect(() => {
     if (error) {
       toast.error(error)
       dispatch(clearRequestError())
     }
   }, [error, dispatch])
 
-  const safeTotalPages = Math.max(1, totalPages || 1)
-  const firstItem = total === 0 ? 0 : (page - 1) * pageSize + 1
-  const lastItem = Math.min(page * pageSize, total)
+  const displayTotal = activeTab === 'resolved' ? filteredItems.length : total
+  const displayTotalPages = activeTab === 'resolved' ? Math.ceil(filteredItems.length / pageSize) : totalPages
+
+  const safeTotalPages = Math.max(1, displayTotalPages || 1)
+  const firstItem = displayTotal === 0 ? 0 : (page - 1) * pageSize + 1
+  const lastItem = Math.min(page * pageSize, displayTotal)
 
   async function refreshAfterAction(requestId) {
     await dispatch(fetchRequests(listQuery())).unwrap()
@@ -192,7 +227,7 @@ export function RequestListPage() {
       />
 
       <RequestTable
-        rows={items}
+        rows={filteredItems}
         loading={loading}
         roles={roles}
         currentUserId={currentUserId}
@@ -202,8 +237,8 @@ export function RequestListPage() {
 
       <div className="flex flex-col items-center justify-between gap-3 border-t border-gray-200 pt-4 sm:flex-row">
         <p className="text-sm text-gray-600">
-          {total > 0
-            ? `Showing ${firstItem}-${lastItem} of ${total}`
+          {displayTotal > 0
+            ? `Showing ${firstItem}-${lastItem} of ${displayTotal}`
             : 'No requests'}
           {' · '}
           Page {page} of {safeTotalPages}

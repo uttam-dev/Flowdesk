@@ -70,15 +70,17 @@ export function RequestActionModal({
   const config = CONFIG[actionType]
   const [remarks, setRemarks] = useState([])
   const [supportUsers, setSupportUsers] = useState([])
-  const [masterRemarkId, setMasterRemarkId] = useState('')
-  const [assignToId, setAssignToId] = useState('')
+  const [remarksId, setRemarksId] = useState(null)
+  const [assignToId, setAssignToId] = useState(null)
   const [commentText, setCommentText] = useState('')
   const [error, setError] = useState(null)
+  
+
 
   useEffect(() => {
     if (!open || !config) return
-    setMasterRemarkId('')
-    setAssignToId('')
+    setRemarksId(null)
+    setAssignToId(null)
     setCommentText('')
     setError(null)
 
@@ -110,8 +112,8 @@ export function RequestActionModal({
   if (!open || !config) return null
 
   function validate() {
-    if (config.showSupport && !assignToId) return 'Support user is required'
-    if (config.remarkRequired && !masterRemarkId) return 'Remark is required'
+    if (config.showSupport && (assignToId === null || assignToId === '')) return 'Support user is required'
+    if (config.remarkRequired && (remarksId === null || remarksId === '')) return 'Remark is required'
     const text = commentText.trim()
     if (config.commentRequired && !text) return 'Comment is required'
     if (text.length > 200) return 'Comment must be at most 200 characters'
@@ -130,17 +132,26 @@ export function RequestActionModal({
       commentText: commentText.trim() || undefined,
     }
 
+    const toIdValue = (val) => {
+      if (val === null || val === '') return undefined
+      const num = Number(val)
+      return Number.isNaN(num) ? val : num
+    }
+
     if (actionType === 'approve') {
-      if (masterRemarkId) payload.masterRemarkId = Number(masterRemarkId)
+      const rid = toIdValue(remarksId)
+      if (rid !== undefined) payload.remarksId = rid
     } else if (actionType === 'reject') {
-      payload.masterRemarkId = Number(masterRemarkId)
+      payload.remarksId = toIdValue(remarksId)
       payload.commentText = commentText.trim()
     } else if (actionType === 'assign') {
-      payload.assignToId = Number(assignToId)
-      if (masterRemarkId) payload.remarksId = Number(masterRemarkId)
+      payload.assignToId = toIdValue(assignToId)
+      const rid = toIdValue(remarksId)
+      if (rid !== undefined) payload.remarksId = rid
     } else if (actionType === 'start' || actionType === 'resolve') {
       payload.status = config.targetStatus
-      if (masterRemarkId) payload.remarksId = Number(masterRemarkId)
+      const rid = toIdValue(remarksId)
+      if (rid !== undefined) payload.remarksId = rid
     }
 
     onConfirm(payload)
@@ -187,13 +198,13 @@ export function RequestActionModal({
             Support user
             <select
               className={selectClass}
-              value={assignToId}
-              onChange={(ev) => setAssignToId(ev.target.value)}
+              value={assignToId || ''}
+              onChange={(ev) => setAssignToId(ev.target.value || null)}
               disabled={saving}
             >
               <option value="">Select support user</option>
-              {supportUsers.map((u) => (
-                <option key={u.userId} value={u.userId}>
+              {supportUsers.map((u, idx) => (
+                <option key={u.userId ?? idx} value={u.userId != null ? String(u.userId) : ''}>
                   {u.fullName}
                 </option>
               ))}
@@ -205,15 +216,15 @@ export function RequestActionModal({
           Remark{config.remarkRequired ? ' *' : ''}
           <select
             className={selectClass}
-            value={masterRemarkId}
-            onChange={(ev) => setMasterRemarkId(ev.target.value)}
+            value={remarksId || ''}
+            onChange={(ev) => setRemarksId(ev.target.value || null)}
             disabled={saving}
           >
             <option value="">
               {config.remarkRequired ? 'Select remark' : 'None'}
             </option>
-            {remarks.map((r) => (
-              <option key={r.masterRemarkId} value={r.masterRemarkId}>
+            {remarks.map((r, idx) => (
+              <option key={r.masterRemarkId ?? idx} value={r.masterRemarkId != null ? String(r.masterRemarkId) : ''}>
                 {r.remarkText}
               </option>
             ))}

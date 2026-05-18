@@ -1,13 +1,14 @@
-import { useState } from 'react'
-import { Modal } from '../../../components/ui/Modal.jsx'
-import { Button } from '../../../components/ui/Button.jsx'
-import { Input } from '../../../components/ui/Input.jsx'
+import { useState } from "react";
+import { Modal } from "../../../components/ui/Modal.jsx";
+import { Button } from "../../../components/ui/Button.jsx";
+import { Input } from "../../../components/ui/Input.jsx";
 
 function validateName(name) {
-  const t = name.trim()
-  if (!t) return 'Category name is required'
-  if (t.length < 1 || t.length > 100) return 'Use 1–100 characters'
-  return null
+  const t = name.trim();
+  if (!t) return "Category name is required";
+  if (t.length < 3) return "Minimum 3 characters required";
+  if (t.length > 100) return "Use up to 100 characters";
+  return null;
 }
 
 function CategoryFormModalInner({
@@ -19,38 +20,41 @@ function CategoryFormModalInner({
   serverError,
   onSubmit,
 }) {
-  const [name, setName] = useState(() => category?.categoryName ?? '')
+  const [name, setName] = useState(() => category?.categoryName ?? "");
   const [approval, setApproval] = useState(() =>
-    category?.isApprovalRequired ? 'yes' : 'no',
-  )
-  const [error, setError] = useState(null)
+    category?.isApprovalRequired ? "yes" : "no",
+  );
+  const [fieldError, setFieldError] = useState(null);
+  const [error, setError] = useState(null);
 
   function handleSubmit(e) {
-    e.preventDefault()
-    const nameErr = validateName(name)
+    e.preventDefault();
+    const nameErr = validateName(name);
     if (nameErr) {
-      setError(nameErr)
-      return
+      setFieldError(nameErr);
+      setError(null);
+      return;
     }
-    const trimmed = name.trim()
+    const trimmed = name.trim();
     const others = (existingNames ?? []).filter(
       (n) =>
-        n.toLowerCase() !==
-        (category?.categoryName ?? '').trim().toLowerCase(),
-    )
+        n.toLowerCase() !== (category?.categoryName ?? "").trim().toLowerCase(),
+    );
     if (others.some((n) => n.toLowerCase() === trimmed.toLowerCase())) {
-      setError('Name must be unique')
-      return
+      setFieldError("Name must be unique");
+      setError(null);
+      return;
     }
-    setError(null)
+    setFieldError(null);
+    setError(null);
     onSubmit({
       categoryName: trimmed,
-      isApprovalRequired: approval === 'yes',
-    })
+      isApprovalRequired: approval === "yes",
+    });
   }
 
-  const title = mode === 'add' ? 'Add category' : 'Edit category'
-  const combinedError = error || serverError
+  const title = mode === "add" ? "Add category" : "Edit category";
+  const combinedError = error || serverError;
 
   return (
     <Modal
@@ -61,7 +65,12 @@ function CategoryFormModalInner({
       closeOnEscape={!saving}
       footer={
         <>
-          <Button type="button" variant="secondary" disabled={saving} onClick={onClose}>
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={saving}
+            onClick={onClose}
+          >
             Cancel
           </Button>
           <Button
@@ -87,18 +96,28 @@ function CategoryFormModalInner({
         ) : null}
         <Input
           id="categoryName"
-          label="Category name"
+          label={
+            <>
+              Category name
+              <span className="text-red-500 ml-1">*</span>
+            </>
+          }
           value={name}
           onChange={(ev) => {
-            setName(ev.target.value)
-            if (error) setError(null)
+            setName(ev.target.value);
+            if (fieldError) setFieldError(null);
+            if (error) setError(null);
           }}
           disabled={saving}
           maxLength={100}
           autoComplete="off"
+          error={fieldError}
         />
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="approval" className="text-sm font-medium text-gray-700">
+          <label
+            htmlFor="approval"
+            className="text-sm font-medium text-gray-700"
+          >
             Approval required
           </label>
           <select
@@ -114,7 +133,7 @@ function CategoryFormModalInner({
         </div>
       </form>
     </Modal>
-  )
+  );
 }
 
 export function CategoryFormModal({
@@ -128,11 +147,11 @@ export function CategoryFormModal({
   onSubmit,
   formKey = 0,
 }) {
-  if (!open) return null
+  if (!open) return null;
 
   return (
     <CategoryFormModalInner
-      key={`${formKey}-${mode}-${category?.categoryId ?? 'new'}`}
+      key={`${formKey}-${mode}-${category?.categoryId ?? "new"}`}
       onClose={onClose}
       mode={mode}
       category={category}
@@ -141,5 +160,5 @@ export function CategoryFormModal({
       serverError={serverError}
       onSubmit={onSubmit}
     />
-  )
+  );
 }
