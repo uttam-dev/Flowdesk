@@ -1,22 +1,25 @@
-import { useState } from 'react'
-import { Modal } from '../../../components/ui/Modal.jsx'
-import { Button } from '../../../components/ui/Button.jsx'
-import { Input } from '../../../components/ui/Input.jsx'
-import { REQUEST_PRIORITY } from '../requestUtils.js'
+import { useState } from "react";
+import { Modal } from "../../../components/ui/Modal.jsx";
+import { Button } from "../../../components/ui/Button.jsx";
+import { Input } from "../../../components/ui/Input.jsx";
+import { REQUEST_PRIORITY } from "../requestUtils.js";
 
 const selectClass =
-  'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20'
+  "w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20";
 
 function validateForm(values) {
-  const title = values.title.trim()
-  const description = values.description.trim()
-  if (!values.categoryId) return 'Category is required'
-  if (!title) return 'Title is required'
-  if (title.length < 1 || title.length > 100) return 'Title must be 1–100 characters'
-  if (!description) return 'Description is required'
-  if (description.length > 500) return 'Description must be at most 500 characters'
-  if (!values.priority) return 'Priority is required'
-  return null
+  const errors = {};
+  const title = values.title.trim();
+  const description = values.description.trim();
+  if (!values.categoryId) errors.categoryId = "Category is required";
+  if (!title) errors.title = "Title is required";
+  if (title.length < 1 || title.length > 100)
+    errors.title = "Title must be 1–100 characters";
+  if (!description) errors.description = "Description is required";
+  if (description.length > 500)
+    errors.description = "Description must be at most 500 characters";
+  if (!values.priority) errors.priority = "Priority is required";
+  return errors;
 }
 
 export function RequestForm({
@@ -24,31 +27,34 @@ export function RequestForm({
   saving,
   serverError,
   onSubmit,
-  submitLabel = 'Submit',
+  submitLabel = "Submit",
 }) {
-  const [categoryId, setCategoryId] = useState('')
-  const [title, setTitle] = useState('')
-  const [description, setDescription] = useState('')
-  const [priority, setPriority] = useState(String(REQUEST_PRIORITY.Medium))
-  const [error, setError] = useState(null)
+  const [categoryId, setCategoryId] = useState("");
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [priority, setPriority] = useState(String(REQUEST_PRIORITY.Medium));
+  const [error, setError] = useState(null);
+  const [fieldErrors, setFieldErrors] = useState({});
 
   function handleSubmit(e) {
-    e.preventDefault()
-    const err = validateForm({ categoryId, title, description, priority })
-    if (err) {
-      setError(err)
-      return
+    e.preventDefault();
+    const next = validateForm({ categoryId, title, description, priority });
+    if (Object.keys(next).length) {
+      setFieldErrors(next);
+      setError(null);
+      return;
     }
-    setError(null)
+    setFieldErrors({});
+    setError(null);
     onSubmit({
       categoryId: Number(categoryId),
       title: title.trim(),
       description: description.trim(),
       priority: Number(priority),
-    })
+    });
   }
 
-  const combinedError = error || serverError
+  const combinedError = error || serverError;
 
   return (
     <form className="space-y-4" onSubmit={handleSubmit}>
@@ -62,14 +68,23 @@ export function RequestForm({
       ) : null}
 
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="req-category" className="text-sm font-medium text-gray-700">
+        <label
+          htmlFor="req-category"
+          className="text-sm font-medium text-gray-700"
+        >
           Category
+          <span className="text-red-500 ml-1">*</span>
         </label>
         <select
           id="req-category"
           className={selectClass}
           value={categoryId}
-          onChange={(ev) => setCategoryId(ev.target.value)}
+          onChange={(ev) => {
+            setCategoryId(ev.target.value);
+            if (fieldErrors.categoryId) {
+              setFieldErrors((prev) => ({ ...prev, categoryId: undefined }));
+            }
+          }}
           disabled={saving}
         >
           <option value="">Select category</option>
@@ -79,23 +94,41 @@ export function RequestForm({
             </option>
           ))}
         </select>
+        {fieldErrors.categoryId ? (
+          <p className="text-red-500 text-sm mt-1" role="alert">
+            {fieldErrors.categoryId}
+          </p>
+        ) : null}
       </div>
 
       <Input
         id="req-title"
-        label="Title"
+        label={
+          <>
+            Title
+            <span className="text-red-500 ml-1">*</span>
+          </>
+        }
         value={title}
         onChange={(ev) => {
-          setTitle(ev.target.value)
-          if (error) setError(null)
+          setTitle(ev.target.value);
+          if (fieldErrors.title) {
+            setFieldErrors((prev) => ({ ...prev, title: undefined }));
+          }
+          if (error) setError(null);
         }}
         disabled={saving}
         maxLength={100}
+        error={fieldErrors.title}
       />
 
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="req-description" className="text-sm font-medium text-gray-700">
+        <label
+          htmlFor="req-description"
+          className="text-sm font-medium text-gray-700"
+        >
           Description
+          <span className="text-red-500 ml-1">*</span>
         </label>
         <textarea
           id="req-description"
@@ -103,37 +136,64 @@ export function RequestForm({
           rows={4}
           value={description}
           onChange={(ev) => {
-            setDescription(ev.target.value)
-            if (error) setError(null)
+            setDescription(ev.target.value);
+            if (fieldErrors.description) {
+              setFieldErrors((prev) => ({ ...prev, description: undefined }));
+            }
+            if (error) setError(null);
           }}
           disabled={saving}
           maxLength={500}
         />
+        {fieldErrors.description ? (
+          <p className="text-red-500 text-sm mt-1" role="alert">
+            {fieldErrors.description}
+          </p>
+        ) : null}
         <p className="text-xs text-gray-500">{description.length}/500</p>
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="req-priority" className="text-sm font-medium text-gray-700">
+        <label
+          htmlFor="req-priority"
+          className="text-sm font-medium text-gray-700"
+        >
           Priority
+          <span className="text-red-500 ml-1">*</span>
         </label>
         <select
           id="req-priority"
           className={selectClass}
           value={priority}
-          onChange={(ev) => setPriority(ev.target.value)}
+          onChange={(ev) => {
+            setPriority(ev.target.value);
+            if (fieldErrors.priority) {
+              setFieldErrors((prev) => ({ ...prev, priority: undefined }));
+            }
+          }}
           disabled={saving}
         >
           <option value={REQUEST_PRIORITY.High}>High</option>
           <option value={REQUEST_PRIORITY.Medium}>Medium</option>
           <option value={REQUEST_PRIORITY.Low}>Low</option>
         </select>
+        {fieldErrors.priority ? (
+          <p className="text-red-500 text-sm mt-1" role="alert">
+            {fieldErrors.priority}
+          </p>
+        ) : null}
       </div>
 
-      <Button type="submit" variant="primary" loading={saving} disabled={saving}>
+      <Button
+        type="submit"
+        variant="primary"
+        loading={saving}
+        disabled={saving}
+      >
         {submitLabel}
       </Button>
     </form>
-  )
+  );
 }
 
 export function RequestModal({
@@ -144,7 +204,7 @@ export function RequestModal({
   serverError,
   onSubmit,
 }) {
-  if (!open) return null
+  if (!open) return null;
 
   return (
     <Modal
@@ -162,5 +222,5 @@ export function RequestModal({
         submitLabel="Create"
       />
     </Modal>
-  )
+  );
 }

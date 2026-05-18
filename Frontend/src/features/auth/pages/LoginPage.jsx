@@ -1,51 +1,52 @@
-import { useEffect, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
-import { FlowDeskLogo } from '../../../components/brand/FlowDeskLogo.jsx'
-import { Button } from '../../../components/ui/Button.jsx'
-import { Input } from '../../../components/ui/Input.jsx'
-import { clearError, login, selectAuthStatus } from '../authSlice.js'
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { FlowDeskLogo } from "../../../components/brand/FlowDeskLogo.jsx";
+import { Button } from "../../../components/ui/Button.jsx";
+import { Input } from "../../../components/ui/Input.jsx";
+import { PasswordInput } from "../../../components/ui/PasswordInput.jsx";
+import { clearError, login, selectAuthStatus } from "../authSlice.js";
 
 export function LoginPage() {
-  const dispatch = useDispatch()
-  const navigate = useNavigate()
-  const location = useLocation()
-  const status = useSelector(selectAuthStatus)
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const status = useSelector(selectAuthStatus);
 
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [fieldErrors, setFieldErrors] = useState({})
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
 
   useEffect(() => {
     return () => {
-      dispatch(clearError())
-    }
-  }, [dispatch])
+      dispatch(clearError());
+    };
+  }, [dispatch]);
 
   const from =
-    (location.state && location.state.from) === '/login'
-      ? '/'
-      : location.state?.from || '/'
+    (location.state && location.state.from) === "/login"
+      ? "/"
+      : location.state?.from || "/";
 
   async function handleSubmit(e) {
-    e.preventDefault()
-    const next = {}
-    if (!email.trim()) next.email = 'Email is required'
-    if (!password) next.password = 'Password is required'
-    setFieldErrors(next)
-    if (Object.keys(next).length) return
+    e.preventDefault();
+    const next = {};
+    if (!email.trim()) next.email = "Email is required";
+    if (!password) next.password = "Password is required";
+    setFieldErrors(next);
+    if (Object.keys(next).length) return;
 
-    const action = await dispatch(login({ email: email.trim(), password }))
+    const action = await dispatch(login({ email: email.trim(), password }));
     if (login.fulfilled.match(action)) {
-      toast.success('Signed in successfully')
-      navigate(from, { replace: true })
+      toast.success("Signed in successfully");
+      navigate(from, { replace: true });
     } else if (login.rejected.match(action)) {
-      toast.error(action.payload ?? 'Sign in failed')
+      toast.error(action.payload ?? "Sign in failed");
     }
   }
 
-  const loading = status === 'loading'
+  const loading = status === "loading";
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50 font-sans">
@@ -117,14 +118,13 @@ export function LoginPage() {
                   label="Email"
                   placeholder="you@company.com"
                   value={email}
-                  onChange={(ev) => setEmail(ev.target.value)}
+                  onChange={(ev) => setEmail(ev.target.value.toLowerCase())}
                   error={fieldErrors.email}
                   disabled={loading}
                 />
-                <Input
+                <PasswordInput
                   id="password"
                   name="password"
-                  type="password"
                   autoComplete="current-password"
                   label="Password"
                   placeholder="••••••••"
@@ -141,7 +141,7 @@ export function LoginPage() {
                     loading={loading}
                     disabled={loading}
                   >
-                    {loading ? 'Signing in' : 'Sign in'}
+                    {loading ? "Signing in" : "Sign in"}
                   </Button>
                   <p className="text-center text-xs leading-relaxed text-gray-500 md:text-left">
                     By continuing you agree to your organization&apos;s access
@@ -152,7 +152,7 @@ export function LoginPage() {
             </div>
 
             <p className="text-center text-sm text-gray-600 md:text-left">
-              Need an account?{' '}
+              Need an account?{" "}
               <Link
                 to="/"
                 className="font-medium text-emerald-700 underline-offset-4 transition-colors duration-200 hover:text-emerald-800 hover:underline"
@@ -164,5 +164,5 @@ export function LoginPage() {
         </main>
       </div>
     </div>
-  )
+  );
 }

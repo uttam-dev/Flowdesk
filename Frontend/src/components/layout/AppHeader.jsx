@@ -1,5 +1,5 @@
-import { Link } from 'react-router-dom'
-import { FlowDeskLogo } from '../brand/FlowDeskLogo.jsx'
+import { Link } from "react-router-dom";
+import { FlowDeskLogo } from "../brand/FlowDeskLogo.jsx";
 
 /**
  * Sticky app header: logo left, title stack, actions right (MasterPrompt-2).
@@ -8,12 +8,12 @@ export function AppHeader({
   title,
   subtitle,
   children,
-  logoHref = '/',
+  logoHref = "/",
   showLogo = true,
 }) {
   return (
     <header className="sticky top-0 z-50 border-b border-gray-200 bg-white/95 shadow-sm backdrop-blur-md transition-shadow duration-200">
-      <div className="mx-auto flex max-w-7xl flex-col gap-4 p-4 md:flex-row md:items-center md:justify-between md:p-6">
+      <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:px-4 md:flex-row md:items-center md:justify-between md:px-6 lg:px-8">
         <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:gap-5">
           {showLogo ? (
             <Link
@@ -25,10 +25,10 @@ export function AppHeader({
           ) : null}
           {title || subtitle ? (
             <div
-              className={`min-w-0 ${showLogo ? 'sm:border-l sm:border-gray-200 sm:pl-5' : ''}`}
+              className={`min-w-0 ${showLogo ? "sm:border-l sm:border-gray-200 sm:pl-5" : ""}`}
             >
               {title ? (
-                <h1 className="text-xl font-semibold tracking-tight text-gray-900">
+                <h1 className="text-lg md:text-xl lg:text-2xl font-semibold tracking-tight text-gray-900">
                   {title}
                 </h1>
               ) : null}
@@ -45,5 +45,5 @@ export function AppHeader({
         ) : null}
       </div>
     </header>
-  )
+  );
 }

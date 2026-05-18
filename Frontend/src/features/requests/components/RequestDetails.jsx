@@ -54,7 +54,7 @@ export function RequestDetails({ request }) {
         </div>
         <div>
           <dt className="font-medium text-gray-500">Created by</dt>
-          <dd className="mt-0.5 text-gray-900">{request.createdByName || '—'}</dd>
+          <dd className="mt-0.5 text-gray-900">{request.fullName || '—'}</dd>
         </div>
         <div>
           <dt className="font-medium text-gray-500">Created</dt>
