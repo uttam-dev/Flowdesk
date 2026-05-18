@@ -17,6 +17,12 @@ namespace FlowDesk.Application.Features.Requests.Queries
             {
                 throw new NotFoundException($"Request with ID {request.userId} not found.");
             }
+
+            if (requestResult!.Category!.IsApprovalRequired == false)
+            {
+                requestResult.Employee?.Manager = null;
+            }
+
             return mapper.Map<RequestResponseDto>(requestResult);
         }
     }

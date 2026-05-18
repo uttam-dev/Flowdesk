@@ -47,7 +47,7 @@ namespace FlowDesk.Api.Controllers
             return Ok(new ApiResponseDto() { Message = "Managers fetched successfully.", Data = managers });
         }
 
-        //Get manager's
+        //Get support
         [Authorize("RequireAdminRole")]
         [HttpGet("support")]
         public async Task<IActionResult> GetSupportUsers()
