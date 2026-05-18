@@ -3,6 +3,7 @@ using FlowDesk.Application.Features.Requests.DTOs;
 using FlowDesk.Domain.Entities;
 using FlowDesk.Domain.Interfaces;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace FlowDesk.Application.Features.Requests.Commands
 {
@@ -12,34 +13,46 @@ namespace FlowDesk.Application.Features.Requests.Commands
     IRequestRepository requestRepository,
     ICommentRepository commentRepository,
     IUserRepository userRepository,
-    IMapper mapper)
+    IMapper mapper,
+    ILogger<AddRequestCommentCommandHandler> logger)
     : IRequestHandler<AddRequestCommentCommand, CommentResponseDto>
     {
         public async Task<CommentResponseDto> Handle(
             AddRequestCommentCommand request,
             CancellationToken cancellationToken)
         {
-            // Validate Request exists
+            // logging
+            logger.LogInformation("Starting {Operation} with {@Request}", nameof(AddRequestCommentCommandHandler), request);
+
+            // logging
+            logger.LogInformation("Fetching Request with Id {RequestId}", request.reqestId);
+
             var fetchedRequest = await requestRepository.GetByIdAsync(request.reqestId);
             if (fetchedRequest == null)
             {
+                logger.LogWarning("Request not found with Id {RequestId}", request.reqestId);
                 throw new Common.Exceptions.NotFoundException("Request not found.");
             }
 
-            // Validate User exists
+            // logging
+            logger.LogInformation("Fetching User with Id {UserId}", request.userId);
+
             var user = await userRepository.GetByIdAsync(request.userId);
             if (user == null)
             {
+                logger.LogWarning("User not found with Id {UserId}", request.userId);
                 throw new Common.Exceptions.NotFoundException("User not found.");
             }
 
-            // Validate Comment text
             if (string.IsNullOrWhiteSpace(request.Dto.CommentText))
             {
+                logger.LogWarning("Empty comment attempt by UserId {UserId}", request.userId);
                 throw new Common.Exceptions.BadRequestException("Comment cannot be empty.");
             }
 
-            // Create Comment
+            // logging
+            logger.LogInformation("Creating comment for RequestId {RequestId}", fetchedRequest.RequestId);
+
             var comment = new Comment
             {
                 RequestId = fetchedRequest.RequestId,
@@ -49,11 +62,15 @@ namespace FlowDesk.Application.Features.Requests.Commands
 
             var createdComment = await commentRepository.AddAsync(comment);
 
-            // Map response
+            // logging
+            logger.LogInformation("Mapping response for RequestId {RequestId}", fetchedRequest.RequestId);
+
             var response = mapper.Map<CommentResponseDto>(createdComment);
             response.CommentByName = user.FullName;
             response.CommentByRoleName = user.Role.RoleName;
             response.IsCurrentUser = true;
+
+            logger.LogInformation("Completed {Operation} for RequestId {RequestId}", nameof(AddRequestCommentCommandHandler), fetchedRequest.RequestId);
 
             return response;
         }

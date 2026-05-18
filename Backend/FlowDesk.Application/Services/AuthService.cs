@@ -6,29 +6,32 @@ using FlowDesk.Application.Common.Exceptions;
 namespace FlowDesk.Application.Services
 {
     public class AuthService(
-            IUserRepository _userRepo,
-            IJwtTokenService _jwtService,
-            IRefreshTokenService _refreshTokenService,
-            ILogger<AuthService> _logger) : IAuthService
+        IUserRepository _userRepo,
+        IJwtTokenService _jwtService,
+        IRefreshTokenService _refreshTokenService,
+        ILogger<AuthService> _logger) : IAuthService
     {
         public async Task<AuthResponseDto> LoginAsync(LoginRequestDto request)
         {
-            _logger.LogInformation("Login attempt started for Email: {Email}", request.Email);
+            _logger.LogInformation("Starting {Operation}", nameof(LoginAsync));
 
             var user = await _userRepo.GetByEmailAsync(request.Email);
 
             if (user == null)
             {
+                _logger.LogWarning("Login failed: User not found for Email {Email}", request.Email);
                 throw new UnauthorizedException("Invalid credentials");
             }
 
             if (user.IsDeleted || !user.IsActive)
             {
+                _logger.LogWarning("Login failed: Inactive/Deleted user {UserId}", user.UserId);
                 throw new UnauthorizedException("Invalid credentials");
             }
 
             if (!PasswordService.VerifyPassword(request.Password, user.PasswordHash))
             {
+                _logger.LogWarning("Login failed: Invalid password for UserId {UserId}", user.UserId);
                 throw new UnauthorizedException("Invalid credentials");
             }
 
@@ -37,7 +40,7 @@ namespace FlowDesk.Application.Services
 
             await _refreshTokenService.SaveRefreshToken(user.UserId, refreshToken);
 
-            _logger.LogInformation("Login successful for UserId: {UserId}", user.UserId);
+            _logger.LogInformation("Login successful for UserId {UserId}", user.UserId);
 
             return new AuthResponseDto
             {
@@ -51,12 +54,19 @@ namespace FlowDesk.Application.Services
 
         public async Task<AuthResponseDto> RefreshTokenAsync(RefreshTokenDto Dto)
         {
-            _logger.LogInformation("Refresh token request received");
+            _logger.LogInformation("Starting {Operation}", nameof(RefreshTokenAsync));
 
             var token = await _refreshTokenService.GetToken(Dto.RefreshToekn!);
 
-            if (token == null || token.ExpiryDate < DateTime.UtcNow)
+            if (token == null)
             {
+                _logger.LogWarning("Refresh token not found");
+                throw new BadRequestException("Invalid refresh token");
+            }
+
+            if (token.ExpiryDate < DateTime.UtcNow)
+            {
+                _logger.LogWarning("Refresh token expired for UserId {UserId}", token.UserId);
                 throw new BadRequestException("Invalid refresh token");
             }
 
@@ -64,6 +74,7 @@ namespace FlowDesk.Application.Services
 
             if (user == null)
             {
+                _logger.LogWarning("User not found for RefreshToken UserId {UserId}", token.UserId);
                 throw new BadRequestException("User not found");
             }
 
@@ -72,7 +83,7 @@ namespace FlowDesk.Application.Services
 
             await _refreshTokenService.SaveRefreshToken(user.UserId, newRefreshToken);
 
-            _logger.LogInformation("Refresh token rotated for UserId: {UserId}", user.UserId);
+            _logger.LogInformation("Refresh token rotated for UserId {UserId}", user.UserId);
 
             return new AuthResponseDto
             {

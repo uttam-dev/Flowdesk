@@ -3,16 +3,28 @@ using FlowDesk.Application.Features.Requests.DTOs;
 using FlowDesk.Domain.DTOs;
 using FlowDesk.Domain.Interfaces;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace FlowDesk.Application.Features.Requests.Queries
 {
     public record GetAllRequestsQuery(FilterRequestQueryDto Ouery, int CurrentUserId, string Role) : IRequest<PagedResult<RequestResponseDto>>;
 
-    public class GetAllRequestsQueryHandler(IRequestRepository requestRepository, IMapper mapper) : IRequestHandler<GetAllRequestsQuery, PagedResult<RequestResponseDto>>
+    public class GetAllRequestsQueryHandler(
+    IRequestRepository requestRepository,
+    IMapper mapper,
+    ILogger<GetAllRequestsQueryHandler> logger)
+    : IRequestHandler<GetAllRequestsQuery, PagedResult<RequestResponseDto>>
     {
         public async Task<PagedResult<RequestResponseDto>> Handle(GetAllRequestsQuery request, CancellationToken cancellationToken)
         {
-            var (totalCount, requestsResult) = await requestRepository.GetAllAsync(request.Ouery, request.CurrentUserId, request.Role);
+            logger.LogInformation("Starting {Operation} with {@Query} for UserId {UserId} and Role {Role}",
+                nameof(GetAllRequestsQueryHandler), request.Ouery, request.CurrentUserId, request.Role);
+
+            var (totalCount, requestsResult) =
+                await requestRepository.GetAllAsync(request.Ouery, request.CurrentUserId, request.Role);
+
+            logger.LogInformation("Fetched {Count} requests (TotalCount: {TotalCount})",
+                requestsResult.Count(), totalCount);
 
             foreach (var reqResult in requestsResult)
             {
@@ -22,7 +34,11 @@ namespace FlowDesk.Application.Features.Requests.Queries
                 }
             }
 
+            logger.LogInformation("Mapping request entities to DTOs");
+
             var requestsResponse = mapper.Map<List<RequestResponseDto>>(requestsResult);
+
+            logger.LogInformation("Completed {Operation}", nameof(GetAllRequestsQueryHandler));
 
             return new PagedResult<RequestResponseDto>
             {
