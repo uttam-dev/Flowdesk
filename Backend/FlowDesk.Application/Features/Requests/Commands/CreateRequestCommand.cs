@@ -40,7 +40,7 @@ namespace FlowDesk.Application.Features.Requests.Commands
             newRequest.EmployeeId = request.CurrentUserId;
 
             //Set initial status based on role
-            if (request.CurrentUserRole is RoleName.Employee)
+            if (request.CurrentUserRole is RoleName.Employee && category.IsApprovalRequired == true)
             {
                 newRequest.Status = RequestStatusEnum.PendingApproval;
             }
@@ -65,9 +65,12 @@ namespace FlowDesk.Application.Features.Requests.Commands
             var response = mapper.Map<EmployeeRequestResponseDto>(createdReq);
             response.CategoryName = category.CategoryName;
 
-            var manager = await userRepository.GetManagerByEmployeeId(request.CurrentUserId);
-            response.ApprovalName = manager?.FullName;
+            if (category.IsApprovalRequired == true)
+            {
+                var manager = await userRepository.GetManagerByEmployeeId(request.CurrentUserId);
+                response.ApprovalName = manager?.FullName;
 
+            }
             return response;
         }
     }
