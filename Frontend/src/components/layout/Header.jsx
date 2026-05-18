@@ -1,4 +1,7 @@
 function titleForPath(pathname) {
+  if (pathname.startsWith('/requests/new')) return 'Create request'
+  if (pathname.startsWith('/requests/')) return 'Request details'
+  if (pathname.startsWith('/requests')) return 'Requests'
   if (pathname.startsWith('/categories')) return 'Categories'
   if (pathname.startsWith('/users')) return 'Users'
   if (pathname.startsWith('/admin-sample')) return 'Admin sample'
