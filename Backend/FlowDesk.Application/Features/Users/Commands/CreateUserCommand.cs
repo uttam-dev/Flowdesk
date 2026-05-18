@@ -42,6 +42,7 @@ namespace FlowDesk.Application.Features.Users.Commands
             // logging
             logger.LogInformation("Mapping request to {Entity}", "User");
 
+            request.user.Email = request.user.Email.ToLowerInvariant();
             var user = _mapper.Map<User>(request.user);
 
             user.PasswordHash = PasswordService.HashPassword(request.user.Password);
