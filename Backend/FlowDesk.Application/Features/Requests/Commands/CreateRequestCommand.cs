@@ -14,13 +14,13 @@ namespace FlowDesk.Application.Features.Requests.Commands
     public record CreateRequestCommand(string CurrentUserRole, int CurrentUserId, CreateRequestDto Dto) : IRequest<EmployeeRequestResponseDto>;
 
     public class CreateRequestCommandHandler(
-     IRequestRepository requestRepository,
-     ICategoryRepository categoryRepository,
-     IUserRepository userRepository,
-     IRequestHistoryRepository requestHistoryRepository,
-     IMapper mapper,
-     ILogger<CreateRequestCommandHandler> logger)
-     : IRequestHandler<CreateRequestCommand, EmployeeRequestResponseDto>
+      IRequestRepository requestRepository,
+      ICategoryRepository categoryRepository,
+      IUserRepository userRepository,
+      IRequestHistoryRepository requestHistoryRepository,
+      IMapper mapper,
+      ILogger<CreateRequestCommandHandler> logger)
+      : IRequestHandler<CreateRequestCommand, EmployeeRequestResponseDto>
     {
         public async Task<EmployeeRequestResponseDto> Handle(
             CreateRequestCommand request,
@@ -34,22 +34,21 @@ namespace FlowDesk.Application.Features.Requests.Commands
                 throw new Common.Exceptions.UnauthorizedException("Only employees and manager can create requests.");
             }
 
-            logger.LogInformation("Fetching Category with Id {CategoryId}", request.Dto.CategoryId);
             var category = await categoryRepository.GetByIdAsync(request.Dto.CategoryId);
-
             if (category == null)
             {
-                logger.LogWarning("Category not found with Id {CategoryId}", request.Dto.CategoryId);
                 throw new Common.Exceptions.NotFoundException("Category not found.");
             }
-
-            logger.LogInformation("Creating new Request for UserId {UserId}", request.CurrentUserId);
 
             var newRequest = mapper.Map<Request>(request.Dto);
             newRequest.RequestNumber = RequestNumberGenerator.Generate();
             newRequest.EmployeeId = request.CurrentUserId;
 
-            if (request.CurrentUserRole is RoleName.Employee && category.IsApprovalRequired == true)
+            // STATUS DECISION
+            bool isEmployee = request.CurrentUserRole == RoleName.Employee;
+            bool approvalRequired = category.IsApprovalRequired;
+
+            if (isEmployee && approvalRequired)
             {
                 newRequest.Status = RequestStatusEnum.PendingApproval;
             }
@@ -60,29 +59,42 @@ namespace FlowDesk.Application.Features.Requests.Commands
 
             var createdReq = await requestRepository.AddAsync(newRequest);
 
-            logger.LogInformation("Request created with Id {RequestId} and Status {Status}", createdReq.RequestId, createdReq.Status);
+            // ================= HISTORY =================
 
+            // 1. Always first history: NULL -> OPEN
             await requestHistoryRepository.AddAsync(new Domain.Entities.RequestHistory
             {
                 RequestId = createdReq.RequestId,
-                OldStatus = request.CurrentUserRole == RoleName.Employee
-                    ? RequestStatusEnum.Open
-                    : null,
-                NewStatus = createdReq.Status,
-                IsSystemGenerated = true
+                OldStatus = null,
+                NewStatus = RequestStatusEnum.Open,
+                ChangedById = request.CurrentUserId
             });
+
+            // 2. Employee + approval required → OPEN -> PENDING
+            if (isEmployee && approvalRequired)
+            {
+                await requestHistoryRepository.AddAsync(new Domain.Entities.RequestHistory
+                {
+                    RequestId = createdReq.RequestId,
+                    OldStatus = RequestStatusEnum.Open,
+                    NewStatus = RequestStatusEnum.PendingApproval,
+                    ChangedById = null,
+                    IsSystemGenerated = true
+                });
+            }
+
+            // ================= RESPONSE =================
 
             var response = mapper.Map<EmployeeRequestResponseDto>(createdReq);
             response.CategoryName = category.CategoryName;
 
-            if (category.IsApprovalRequired == true)
+            if (approvalRequired)
             {
-                logger.LogInformation("Fetching Manager for UserId {UserId}", request.CurrentUserId);
                 var manager = await userRepository.GetManagerByEmployeeId(request.CurrentUserId);
                 response.ApprovalName = manager?.FullName;
             }
 
-            logger.LogInformation("Completed {Operation} for RequestId {RequestId}", nameof(CreateRequestCommandHandler), createdReq.RequestId);
+            logger.LogInformation("Completed {Operation} for RequestId {RequestId}", createdReq.RequestId);
 
             return response;
         }

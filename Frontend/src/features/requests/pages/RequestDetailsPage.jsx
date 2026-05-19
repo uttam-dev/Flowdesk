@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { Button } from '../../../components/ui/Button.jsx'
 import { selectRoleNames } from '../../auth/authSlice.js'
+import { AuditTrail } from '../components/AuditTrail.jsx'
 import { RequestActionModal } from '../components/RequestActionModal.jsx'
 import { RequestComments } from '../components/RequestComments.jsx'
 import { RequestDetails } from '../components/RequestDetails.jsx'
@@ -28,7 +29,7 @@ import {
   selectRequestNumberFilter,
   updateRequestStatus,
 } from '../requestSlice.js'
-import { getRowActions } from '../requestUtils.js'
+import { getRowActions, hasRole } from '../requestUtils.js'
 
 export function RequestDetailsPage() {
   const { id } = useParams()
@@ -71,6 +72,7 @@ export function RequestDetailsPage() {
     detail && detail.requestId
       ? getRowActions(detail, roles).filter((a) => a.key !== 'view')
       : []
+  const isAdmin = hasRole(roles, 'Admin')
 
   async function refreshAll() {
     if (!id) return
@@ -153,6 +155,8 @@ export function RequestDetailsPage() {
           ))}
         </div>
       ) : null}
+
+      {isAdmin ? <AuditTrail requestId={id} /> : null}
 
       <RequestComments comments={comments} loading={commentsLoading} />
 

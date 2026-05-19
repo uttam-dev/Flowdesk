@@ -23,7 +23,7 @@ namespace FlowDesk.Application.Features.Requests.Commands
 
             var req = await requestRepository.GetByIdAsync(request.RequestId);
 
-            if (req == null)
+            if (req is null)
             {
                 logger.LogWarning("Request not found with Id {RequestId}", request.RequestId);
                 throw new Common.Exceptions.NotFoundException("Request not found.");
@@ -42,7 +42,9 @@ namespace FlowDesk.Application.Features.Requests.Commands
             }
 
             var newStatus = request.Dto.Status;
+            var currentStatus = req.Status;
 
+            // Validate allowed statuses
             if (newStatus != RequestStatusEnum.InProgress &&
                 newStatus != RequestStatusEnum.Resolved)
             {
@@ -50,39 +52,37 @@ namespace FlowDesk.Application.Features.Requests.Commands
                 throw new Common.Exceptions.BadRequestException("Invalid status.");
             }
 
-            if (newStatus == RequestStatusEnum.InProgress &&
-                req.Status != RequestStatusEnum.Assigned)
+            // Validate transitions
+            if ((newStatus == RequestStatusEnum.InProgress && currentStatus != RequestStatusEnum.Assigned) ||
+                (newStatus == RequestStatusEnum.Resolved && currentStatus != RequestStatusEnum.InProgress))
             {
-                logger.LogWarning("Invalid transition to InProgress for RequestId {RequestId}", request.RequestId);
-                throw new Common.Exceptions.BadRequestException("Only assigned request can move to InProgress.");
+                logger.LogWarning("Invalid transition from {CurrentStatus} to {NewStatus} for RequestId {RequestId}",
+                    currentStatus, newStatus, request.RequestId);
+
+                throw new Common.Exceptions.BadRequestException(
+                    newStatus == RequestStatusEnum.InProgress
+                        ? "Only assigned request can move to InProgress."
+                        : "Only InProgress request can be resolved.");
             }
 
-            if (newStatus == RequestStatusEnum.Resolved &&
-                req.Status != RequestStatusEnum.InProgress)
-            {
-                logger.LogWarning("Invalid transition to Resolved for RequestId {RequestId}", request.RequestId);
-                throw new Common.Exceptions.BadRequestException("Only InProgress request can be resolved.");
-            }
-
-            var oldStatus = req.Status;
-
-            logger.LogInformation("Updating RequestId {RequestId} from {OldStatus} to {NewStatus}", request.RequestId, oldStatus, newStatus);
+            logger.LogInformation("Updating RequestId {RequestId} from {OldStatus} to {NewStatus}",
+                request.RequestId, currentStatus, newStatus);
 
             req.Status = newStatus;
-            req.UpdatedOn = DateTime.UtcNow;
-
             await requestRepository.Update(req);
 
+            // Add history
             await historyRepository.AddAsync(new RequestHistory
             {
                 RequestId = req.RequestId,
                 ChangedById = request.UserId,
-                OldStatus = oldStatus,
+                OldStatus = currentStatus,
                 NewStatus = newStatus,
                 RemarksId = request.Dto.RemarksId,
             });
 
-            if (request.Dto.CommentText != null)
+            // Add comment if exists
+            if (!string.IsNullOrWhiteSpace(request.Dto.CommentText))
             {
                 logger.LogInformation("Adding comment for RequestId {RequestId}", request.RequestId);
 
@@ -94,6 +94,7 @@ namespace FlowDesk.Application.Features.Requests.Commands
                 });
             }
 
+            // Auto close if resolved
             if (newStatus == RequestStatusEnum.Resolved)
             {
                 logger.LogInformation("Auto-closing RequestId {RequestId}", request.RequestId);
@@ -103,11 +104,16 @@ namespace FlowDesk.Application.Features.Requests.Commands
                     RequestId = req.RequestId,
                     OldStatus = RequestStatusEnum.Resolved,
                     NewStatus = RequestStatusEnum.Closed,
-                    IsSystemGenerated = true
+                    IsSystemGenerated = true,
                 });
+
+                req.Status = RequestStatusEnum.Closed;
+                req.ClosedOn = DateTime.UtcNow;
+                await requestRepository.Update(req);
             }
 
-            logger.LogInformation("Completed {Operation} for RequestId {RequestId}", nameof(UpdateRequestStatusCommandHandler), request.RequestId);
+            logger.LogInformation("Completed {Operation} for RequestId {RequestId}",
+                nameof(UpdateRequestStatusCommandHandler), request.RequestId);
         }
     }
 }

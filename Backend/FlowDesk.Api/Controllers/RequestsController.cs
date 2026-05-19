@@ -175,5 +175,18 @@ namespace FlowDesk.Api.Controllers
                 Data = result
             });
         }
+
+        // GET: api/requests/{id}/history
+        [Authorize(policy: "RequireAdminRole")]
+        [HttpGet("{requestId}/history")]
+        public async Task<IActionResult> GetRequestHistory(int requestId)
+        {
+            var result = await _mediator.Send(new GetRequestHistoryQuery(requestId));
+            return Ok(new ApiResponseDto
+            {
+                Message = "Request history fetched successfully",
+                Data = result
+            });
+        }
     }
 }
