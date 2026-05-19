@@ -6,19 +6,19 @@
  */
 export function mapAuthResponse(raw) {
   const body =
-    raw && typeof raw === 'object' && 'data' in raw && raw.data != null
+    raw && typeof raw === "object" && "data" in raw && raw.data != null
       ? raw.data
-      : raw
-  const b = body && typeof body === 'object' ? body : {}
+      : raw;
+  const b = body && typeof body === "object" ? body : {};
 
   const accessToken =
-    b.accessToken ?? b.token ?? b.access_token ?? b.Token ?? null
+    b.accessToken ?? b.token ?? b.access_token ?? b.Token ?? null;
   const refreshToken =
-    b.refreshToken ?? b.refresh_token ?? b.RefreshToken ?? null
+    b.refreshToken ?? b.refresh_token ?? b.RefreshToken ?? null;
 
-  const userRaw = b.user ?? b.User ?? b.userAccount ?? b.account ?? null
-  let user = null
-  if (userRaw && typeof userRaw === 'object') {
+  const userRaw = b.user ?? b.User ?? b.userAccount ?? b.account ?? null;
+  let user = null;
+  if (userRaw && typeof userRaw === "object") {
     user = {
       id: userRaw.id ?? userRaw.userId ?? userRaw.UserId ?? null,
       email: userRaw.email ?? userRaw.Email ?? null,
@@ -32,7 +32,7 @@ export function mapAuthResponse(raw) {
           userRaw.permission ??
           userRaw.Permission,
       ),
-    }
+    };
   } else if (b.email || b.Email || b.name || b.Name) {
     user = {
       id: b.id ?? b.userId ?? null,
@@ -42,19 +42,19 @@ export function mapAuthResponse(raw) {
         b.roles ?? b.Roles ?? b.role ?? b.Role ?? b.roleName,
       ),
       permissions: normalizeRoles(b.permissions ?? b.Permissions),
-    }
+    };
   }
 
   return {
     accessToken,
     refreshToken,
     user,
-  }
+  };
 }
 
 function normalizeRoles(value) {
-  if (!value && value !== 0) return []
-  if (Array.isArray(value)) return value.map(String)
-  if (typeof value === 'string') return [value]
-  return []
+  if (!value && value !== 0) return [];
+  if (Array.isArray(value)) return value.map(String);
+  if (typeof value === "string") return [value];
+  return [];
 }
