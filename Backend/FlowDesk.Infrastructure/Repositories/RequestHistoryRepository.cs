@@ -28,6 +28,14 @@ namespace FlowDesk.Infrastructure.Repositories
             return await _context.RequestHistories.FirstOrDefaultAsync(rh => rh.RequestHistoryId == requestHistoryId);
         }
 
+        public async Task<List<RequestHistory>?> GetByRequestId(int requestId)
+        {
+            return await _context.RequestHistories.Include(r => r.ChangedByUser)
+                .ThenInclude(u => u!.Role)
+                .Where(r => r.RequestId == requestId)
+                .OrderBy(r => r.ChangedOn).ToListAsync();
+        }
+
         public async Task HardDelete(RequestHistory requestHistory)
         {
             _context.RequestHistories.Remove(requestHistory);

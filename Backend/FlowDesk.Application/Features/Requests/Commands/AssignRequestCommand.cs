@@ -50,7 +50,7 @@ namespace FlowDesk.Application.Features.Requests.Commands
                 ChangedById = request.CurrentUserId,
                 OldStatus = fetchedRequest.Status,
                 NewStatus = Domain.Enums.RequestStatusEnum.Assigned,
-                RemarksId = request.Dto.RemarksId == 0 ? null : request.Dto.RemarksId,
+                RemarksId = request.Dto.RemarksId == 0 || request.Dto.RemarksId == null ? null : request.Dto.RemarksId,
             });
 
             fetchedRequest.Status = Domain.Enums.RequestStatusEnum.Assigned;
