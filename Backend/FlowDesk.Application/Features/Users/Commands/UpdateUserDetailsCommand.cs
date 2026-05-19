@@ -1,4 +1,5 @@
 ﻿using FlowDesk.Application.Features.Users.DTOs;
+using FlowDesk.Domain.Enums;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -39,11 +40,14 @@ namespace FlowDesk.Application.Features.Users.Commands
 
             // Only updates non-null fields from DTO
             _mapper.Map(request.userDto, user);
-            user.UpdatedOn = DateTime.UtcNow;
 
             // logging
             logger.LogInformation("Updating {Entity} with Id {EntityId}", "User", request.userId);
 
+            if (user.RoleId != (int)RoleEnum.Employee)
+            {
+                user.ManagerId = null;
+            }
             var updatedUser = await _userRepository.Update(user);
 
             // logging

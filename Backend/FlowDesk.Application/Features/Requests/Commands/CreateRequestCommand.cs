@@ -28,7 +28,7 @@ namespace FlowDesk.Application.Features.Requests.Commands
         {
             logger.LogInformation("Starting {Operation} with {@Request}", nameof(CreateRequestCommandHandler), request);
 
-            if (request.CurrentUserRole is not (RoleName.Employee or RoleName.Manager))
+            if (request.CurrentUserRole is not (nameof(RoleEnum.Employee) or nameof(RoleEnum.Manager)))
             {
                 logger.LogWarning("Unauthorized role {Role} tried to create request", request.CurrentUserRole);
                 throw new Common.Exceptions.UnauthorizedException("Only employees and manager can create requests.");
@@ -45,7 +45,7 @@ namespace FlowDesk.Application.Features.Requests.Commands
             newRequest.EmployeeId = request.CurrentUserId;
 
             // STATUS DECISION
-            bool isEmployee = request.CurrentUserRole == RoleName.Employee;
+            bool isEmployee = request.CurrentUserRole == RoleEnum.Employee.ToString();
             bool approvalRequired = category.IsApprovalRequired;
 
             if (isEmployee && approvalRequired)

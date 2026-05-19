@@ -2,6 +2,7 @@
 using FlowDesk.Application.Common.Validators;
 using FlowDesk.Domain;
 using FlowDesk.Domain.DTOs;
+using FlowDesk.Domain.Enums;
 using FlowDesk.Domain.Utils;
 using FlowDesk.Infrastructure;
 using FluentValidation;
@@ -85,7 +86,8 @@ namespace FlowDesk.Api
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]!)),
                     RequireExpirationTime = true,
-                    RequireSignedTokens = true
+                    RequireSignedTokens = true,
+                    ClockSkew = TimeSpan.Zero
                 };
 
                 // Custom response for unauthorized and forbidden requests
@@ -126,13 +128,13 @@ namespace FlowDesk.Api
             // Add policy for role-based authorization
             services.AddAuthorization(options =>
             {
-                options.AddPolicy("RequireAdminRole", policy => policy.RequireRole(RoleName.Admin));
-                options.AddPolicy("RequireManagerRole", policy => policy.RequireRole(RoleName.Manager));
-                options.AddPolicy("RequireSupportRole", policy => policy.RequireRole(RoleName.Support));
-                options.AddPolicy("RequireEmployeeRole", policy => policy.RequireRole(RoleName.Employee));
-                options.AddPolicy("RequireApprovel", policy => policy.RequireRole(RoleName.Manager));
-                options.AddPolicy("CanCreateRequest", policy => policy.RequireRole(RoleName.Employee, RoleName.Manager));
-                options.AddPolicy("CanCreateRequestComment", policy => policy.RequireRole(RoleName.Admin, RoleName.Support, RoleName.Manager));
+                options.AddPolicy("RequireAdminRole", policy => policy.RequireRole(RoleEnum.Admin.ToString()));
+                options.AddPolicy("RequireManagerRole", policy => policy.RequireRole(RoleEnum.Manager.ToString()));
+                options.AddPolicy("RequireSupportRole", policy => policy.RequireRole(RoleEnum.Support.ToString()));
+                options.AddPolicy("RequireEmployeeRole", policy => policy.RequireRole(RoleEnum.Employee.ToString()));
+                options.AddPolicy("RequireApprovel", policy => policy.RequireRole(RoleEnum.Manager.ToString()));
+                options.AddPolicy("CanCreateRequest", policy => policy.RequireRole(RoleEnum.Employee.ToString(), RoleEnum.Manager.ToString()));
+                options.AddPolicy("CanCreateRequestComment", policy => policy.RequireRole(RoleEnum.Admin.ToString(), RoleEnum.Support.ToString(), RoleEnum.Manager.ToString()));
             });
 
             // Add cors policy

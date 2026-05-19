@@ -29,7 +29,7 @@ namespace FlowDesk.Application.Features.Requests.Commands
                 throw new Common.Exceptions.NotFoundException("Request not found.");
             }
 
-            if (request.RoleName != RoleName.Support)
+            if (request.RoleName != RoleEnum.Support.ToString())
             {
                 logger.LogWarning("Unauthorized role {Role} for RequestId {RequestId}", request.RoleName, request.RequestId);
                 throw new Common.Exceptions.UnauthorizedException("Only support can update status.");

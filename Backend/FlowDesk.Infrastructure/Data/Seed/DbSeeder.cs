@@ -24,10 +24,10 @@ namespace FlowDesk.Infrastructure.Data.Seed
                 int supportRoleId = (int)RoleEnum.Support;
 
                 context.Roles.AddRange(
-                    new Role { RoleId = employeeRoleId, RoleName = RoleName.Employee },
-                    new Role { RoleId = managerRoleId, RoleName = RoleName.Manager },
-                    new Role { RoleId = adminRoleId, RoleName = RoleName.Admin },
-                    new Role { RoleId = supportRoleId, RoleName = RoleName.Support }
+                    new Role { RoleId = employeeRoleId, RoleName = RoleEnum.Employee.ToString() },
+                    new Role { RoleId = managerRoleId, RoleName = RoleEnum.Manager.ToString() },
+                    new Role { RoleId = adminRoleId, RoleName = RoleEnum.Admin.ToString() },
+                    new Role { RoleId = supportRoleId, RoleName = RoleEnum.Support.ToString() }
                 );
 
                 await context.SaveChangesAsync();
@@ -35,6 +35,7 @@ namespace FlowDesk.Infrastructure.Data.Seed
                 await transaction.CommitAsync();
             }
 
+            // Only on development environment, remove in production
             if (!context.Users.Any())
             {
                 var passHashed = PasswordService.HashPassword("12345");

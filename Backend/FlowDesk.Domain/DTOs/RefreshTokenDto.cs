@@ -8,6 +8,6 @@ namespace FlowDesk.Domain.DTOs
     public class RefreshTokenDto
     {
         [Required(ErrorMessage = "Refresh token required")]
-        public string? RefreshToekn { get; set; }
+        public string? RefreshToken { get; set; }
     }
 }

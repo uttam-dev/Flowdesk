@@ -33,21 +33,21 @@ namespace FlowDesk.Infrastructure.Repositories
                 .AsNoTracking()
                 .Include(r => r.Category)
                 .Include(r => r.Employee)
-                .ThenInclude(e => e.Manager)
+                .ThenInclude(e => e!.Manager)
                 //.Where(r => r.Category!.IsApprovalRequired == true)
                 .Include(r => r.AssignedUser)
                 .AsQueryable();
 
             // ROLE BASED FILTER
-            if (role == RoleName.Employee)
+            if (role == RoleEnum.Employee.ToString())
             {
                 query = query.Where(r => r.EmployeeId == userId);
             }
-            else if (role == RoleName.Manager)
+            else if (role == RoleEnum.Manager.ToString())
             {
                 query = query.Where(r => r.EmployeeId == userId);
             }
-            else if (role == RoleName.Support)
+            else if (role == RoleEnum.Support.ToString())
             {
                 query = query.Where(r => r.AssignedToId == userId);
             }

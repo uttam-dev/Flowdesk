@@ -1,5 +1,6 @@
 ﻿using FlowDesk.Domain.DTOs;
 using FlowDesk.Domain.Entities;
+using FlowDesk.Domain.Enums;
 using FlowDesk.Domain.Interfaces;
 using FlowDesk.Domain.Utils;
 using FlowDesk.Infrastructure.Data;
@@ -43,13 +44,13 @@ namespace FlowDesk.Infrastructure.Repositories
         public async Task<List<User>> GetManagersAsync()
         {
             return await _context.Users.Include(u => u.Role)
-                .Where(u => u.Role.RoleName == RoleName.Manager && !u.IsDeleted)
+                .Where(u => u.Role.RoleName == RoleEnum.Manager.ToString() && !u.IsDeleted)
                 .ToListAsync();
         }
         public async Task<List<User>> GetSupportUsersAsync()
         {
             return await _context.Users.Include(u => u.Role)
-                .Where(u => u.Role.RoleName == RoleName.Support && !u.IsDeleted)
+                .Where(u => u.Role.RoleName == RoleEnum.Support.ToString() && !u.IsDeleted)
                 .ToListAsync();
         }
 

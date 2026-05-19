@@ -3,6 +3,7 @@ using FlowDesk.Application.Features.Categories.Commands;
 using FlowDesk.Application.Features.Categories.DTOs;
 using FlowDesk.Application.Features.Categories.Queries;
 using FlowDesk.Domain.DTOs;
+using FlowDesk.Domain.Enums;
 using FlowDesk.Domain.Utils;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -21,7 +22,7 @@ namespace FlowDesk.Api.Controllers
         {
             var result = await _mediator.Send(new GetAllCategoriesQuery(query));
 
-            if (User.IsInRole(RoleName.Admin))
+            if (User.IsInRole(RoleEnum.Admin.ToString()))
             {
                 var adminData = new PagedResult<CategoryAdminResponseDto>
                 {
@@ -60,7 +61,7 @@ namespace FlowDesk.Api.Controllers
         {
             var result = await _mediator.Send(new GetCategoryByIdQuery(id));
 
-            if (User.IsInRole(RoleName.Admin))
+            if (User.IsInRole(RoleEnum.Admin.ToString()))
             {
                 var adminData = _mapper.Map<CategoryAdminResponseDto>(result);
                 return Ok(new ApiResponseDto() { Message = "Category fatched successfully", Data = adminData });

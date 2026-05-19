@@ -1,54 +1,54 @@
-import axios from 'axios'
-import { mapAuthResponse } from '../features/auth/authMappers.js'
-import { API_BASE_URL } from '../config/env.js'
-import { authTokenBridge } from './authTokenBridge.js'
+import axios from "axios";
+import { mapAuthResponse } from "../features/auth/authMappers.js";
+import { API_BASE_URL } from "../config/env.js";
+import { authTokenBridge } from "./authTokenBridge.js";
 
-const REFRESH_PATH = '/refresh'
+const REFRESH_PATH = "/auth/refresh";
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
-})
+});
 
-let isRefreshing = false
-let failedQueue = []
+let isRefreshing = false;
+let failedQueue = [];
 
 function processQueue(error, token = null) {
   failedQueue.forEach((p) => {
     if (error) {
-      p.reject(error)
+      p.reject(error);
     } else {
-      p.resolve(token)
+      p.resolve(token);
     }
-  })
-  failedQueue = []
+  });
+  failedQueue = [];
 }
 
 function isRefreshRequest(config) {
-  const url = config?.url ?? ''
-  return url.replace(/^\//, '') === REFRESH_PATH.replace(/^\//, '')
+  const url = config?.url ?? "";
+  return url.replace(/^\//, "") === REFRESH_PATH.replace(/^\//, "");
 }
 
 function isAuthLoginRequest(config) {
-  const u = (config?.url ?? '').toLowerCase()
-  return u.includes('/login')
+  const u = (config?.url ?? "").toLowerCase();
+  return u.includes("/login");
 }
 
 apiClient.interceptors.request.use((config) => {
-  const token = authTokenBridge.getAccessToken()
+  const token = authTokenBridge.getAccessToken();
   if (token && !isRefreshRequest(config) && !isAuthLoginRequest(config)) {
-    config.headers.Authorization = `Bearer ${token}`
+    config.headers.Authorization = `Bearer ${token}`;
   }
-  return config
-})
+  return config;
+});
 
 apiClient.interceptors.response.use(
   (res) => res,
   async (error) => {
-    const originalRequest = error.config
-    const status = error.response?.status
+    const originalRequest = error.config;
+    const status = error.response?.status;
 
     if (
       status !== 401 ||
@@ -56,64 +56,64 @@ apiClient.interceptors.response.use(
       isRefreshRequest(originalRequest) ||
       isAuthLoginRequest(originalRequest)
     ) {
-      return Promise.reject(error)
+      return Promise.reject(error);
     }
 
-    const refreshToken = authTokenBridge.getRefreshToken()
+    const refreshToken = authTokenBridge.getRefreshToken();
     if (!refreshToken) {
-      authTokenBridge.clearAuth()
-      return Promise.reject(error)
+      authTokenBridge.clearAuth();
+      return Promise.reject(error);
     }
 
     if (isRefreshing) {
       return new Promise((resolve, reject) => {
-        failedQueue.push({ resolve, reject })
+        failedQueue.push({ resolve, reject });
       })
         .then((token) => {
-          originalRequest.headers.Authorization = `Bearer ${token}`
-          return apiClient(originalRequest)
+          originalRequest.headers.Authorization = `Bearer ${token}`;
+          return apiClient(originalRequest);
         })
-        .catch((err) => Promise.reject(err))
+        .catch((err) => Promise.reject(err));
     }
 
-    originalRequest._retry = true
-    isRefreshing = true
+    originalRequest._retry = true;
+    isRefreshing = true;
 
     try {
       const { data } = await axios.post(
         `${API_BASE_URL}${REFRESH_PATH}`,
         { refreshToken },
-        { headers: { 'Content-Type': 'application/json' } },
-      )
+        { headers: { "Content-Type": "application/json" } },
+      );
 
-      const mapped = mapAuthResponse(data)
+      const mapped = mapAuthResponse(data);
 
-      const accessToken = mapped.accessToken
-      const nextRefresh = mapped.refreshToken ?? refreshToken
+      const accessToken = mapped.accessToken;
+      const nextRefresh = mapped.refreshToken ?? refreshToken;
 
       if (!accessToken) {
-        throw new Error('Refresh response missing access token')
+        throw new Error("Refresh response missing access token");
       }
 
       const payload = {
         accessToken,
         refreshToken: nextRefresh,
-      }
+      };
       if (mapped.user) {
-        payload.user = mapped.user
+        payload.user = mapped.user;
       }
 
-      authTokenBridge.setTokens(payload)
+      authTokenBridge.setTokens(payload);
 
-      processQueue(null, accessToken)
-      originalRequest.headers.Authorization = `Bearer ${accessToken}`
-      return apiClient(originalRequest)
+      processQueue(null, accessToken);
+      originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+      return apiClient(originalRequest);
     } catch (refreshErr) {
-      processQueue(refreshErr, null)
-      authTokenBridge.clearAuth()
-      return Promise.reject(refreshErr)
+      processQueue(refreshErr, null);
+      authTokenBridge.clearAuth();
+      return Promise.reject(refreshErr);
     } finally {
-      isRefreshing = false
+      isRefreshing = false;
     }
   },
-)
+);

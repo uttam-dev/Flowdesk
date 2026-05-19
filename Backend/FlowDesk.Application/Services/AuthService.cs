@@ -56,7 +56,7 @@ namespace FlowDesk.Application.Services
         {
             _logger.LogInformation("Starting {Operation}", nameof(RefreshTokenAsync));
 
-            var token = await _refreshTokenService.GetToken(Dto.RefreshToekn!);
+            var token = await _refreshTokenService.GetToken(Dto.RefreshToken!);
 
             if (token == null)
             {
