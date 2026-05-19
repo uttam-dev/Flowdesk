@@ -1,5 +1,6 @@
 ﻿using FlowDesk.Domain.DTOs;
 using FlowDesk.Domain.Entities;
+using FlowDesk.Domain.Enums;
 using FlowDesk.Domain.Interfaces;
 using FlowDesk.Domain.Utils;
 using FlowDesk.Infrastructure.Data;
@@ -125,6 +126,39 @@ namespace FlowDesk.Infrastructure.Repositories
                                 .ThenInclude(e => e!.Manager!) // Suppress nullable warning as EF handles null navigation
                             .Include(r => r.AssignedUser)
                             .FirstOrDefaultAsync(r => r.RequestId == requestId);
+        }
+
+        public async Task<(int Total, int Open, int PendingApproval, int Assigned, int InProgress, int Resolved, int Closed)>
+     GetDashboardDataAsync(int userId, RoleEnum role)
+        {
+            var query = _context.Requests.AsNoTracking().AsQueryable();
+
+            query = role switch
+            {
+                RoleEnum.Employee => query.Where(r => r.EmployeeId == userId),
+                RoleEnum.Manager => query.Where(r => r.Employee != null && r.Employee.ManagerId == userId),
+                RoleEnum.Support => query.Where(r => r.AssignedToId == userId),
+                _ => query
+            };
+
+            var result = await query
+                .GroupBy(x => 1)
+                .Select(g => new
+                {
+                    Total = g.Count(),
+                    Open = g.Count(x => x.Status == RequestStatusEnum.Open),
+                    PendingApproval = g.Count(x => x.Status == RequestStatusEnum.PendingApproval),
+                    Assigned = g.Count(x => x.Status == RequestStatusEnum.Assigned),
+                    InProgress = g.Count(x => x.Status == RequestStatusEnum.InProgress),
+                    Resolved = g.Count(x => x.Status == RequestStatusEnum.Resolved),
+                    Closed = g.Count(x => x.Status == RequestStatusEnum.Closed)
+                })
+                .FirstOrDefaultAsync();
+
+            return result == null
+                ? (0, 0, 0, 0, 0, 0, 0)
+                : (result.Total, result.Open, result.PendingApproval,
+                   result.Assigned, result.InProgress, result.Resolved, result.Closed);
         }
 
         public async Task HardDelete(Request request)

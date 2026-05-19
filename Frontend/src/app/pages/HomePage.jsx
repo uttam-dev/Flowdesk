@@ -1,47 +1,55 @@
-import { useSelector } from 'react-redux'
+import { useEffect, useState } from "react";
+import { RoleBasedDashboard } from "../../features/dashboard/components/RoleBasedDashboard.jsx";
 import {
-  selectAuthUser,
-  selectRoleNames,
-} from '../../features/auth/authSlice.js'
+  fetchDashboardApi,
+  parseDashboardError,
+} from "../../features/dashboard/dashboardApi.js";
 
 export function HomePage() {
-  const user = useSelector(selectAuthUser)
-  const roles = useSelector(selectRoleNames)
+  const [dashboardData, setDashboardData] = useState(null);
+  const [loading, setLoading] = useState("idle");
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    Promise.resolve()
+      .then(() => {
+        if (cancelled) return null;
+        setLoading("pending");
+        setError(null);
+        return fetchDashboardApi();
+      })
+      .then((data) => {
+        if (!cancelled && data) {
+          setDashboardData(data);
+          setLoading("succeeded");
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          setDashboardData(null);
+          setError(parseDashboardError(err));
+          setLoading("failed");
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <div className="space-y-6">
-      <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-shadow duration-200 hover:shadow-md md:p-6">
-        <h2 className="text-xl font-semibold tracking-tight text-gray-900">
-          Dashboard
-        </h2>
-        <p className="mt-2 text-sm text-gray-600">
-          Signed in as{' '}
-          <span className="font-medium text-gray-900">{user?.email ?? '—'}</span>
+      {error ? (
+        <p className="rounded-xl border border-red-100 bg-red-50 p-4 text-sm font-medium text-red-800 shadow-sm">
+          {error}
         </p>
-        <p className="mt-4 text-sm text-gray-600">
-          Use the sidebar to navigate. Categories are available to{' '}
-          <span className="font-medium">Admin</span> only.
-        </p>
-        <div className="mt-6">
-          <h3 className="text-sm font-semibold text-gray-900">Your roles</h3>
-          {roles.length ? (
-            <ul className="mt-2 flex flex-wrap gap-2">
-              {roles.map((r) => (
-                <li
-                  key={r}
-                  className="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-900 ring-1 ring-inset ring-emerald-100 transition-colors duration-200 hover:bg-emerald-100"
-                >
-                  {r}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="mt-2 text-sm text-gray-500">
-              No roles in session — map them in auth mappers if needed.
-            </p>
-          )}
-        </div>
-      </section>
+      ) : (
+        <RoleBasedDashboard
+          dashboardData={loading === "pending" ? null : dashboardData}
+        />
+      )}
     </div>
-  )
+  );
 }

@@ -1,5 +1,7 @@
 ﻿using FlowDesk.Domain.DTOs;
 using FlowDesk.Domain.Entities;
+using FlowDesk.Domain.Enums;
+using FlowDesk.Domain.Utils;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -16,6 +18,6 @@ namespace FlowDesk.Domain.Interfaces
         Task HardDelete(Request request);
         Task<bool> ExistsAsync(int requestId);
         Task SaveChangesAsync();
-
+        Task<(int Total, int Open, int PendingApproval, int Assigned, int InProgress, int Resolved, int Closed)> GetDashboardDataAsync(int userId, RoleEnum role);
     }
 }
