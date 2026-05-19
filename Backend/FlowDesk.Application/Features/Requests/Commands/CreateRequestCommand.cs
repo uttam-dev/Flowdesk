@@ -43,6 +43,7 @@ namespace FlowDesk.Application.Features.Requests.Commands
             var newRequest = mapper.Map<Request>(request.Dto);
             newRequest.RequestNumber = RequestNumberGenerator.Generate();
             newRequest.EmployeeId = request.CurrentUserId;
+            newRequest.DueDate = DateTime.UtcNow.AddDays(category.SLAHours);
 
             // STATUS DECISION
             bool isEmployee = request.CurrentUserRole == RoleEnum.Employee.ToString();

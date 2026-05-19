@@ -11,6 +11,7 @@ namespace FlowDesk.Application.Features.Categories.DTOs
         [StringLength(100, ErrorMessage = "Category name cannot exceed 100 characters")]
         [MinLength(1, ErrorMessage = "Category is required")]
         public string CategoryName { get; set; } = string.Empty;
+        public int SLAHours { get; set; }
 
         [Required(ErrorMessage = "Approvel status is required")]
         public bool IsApprovalRequired { get; set; }

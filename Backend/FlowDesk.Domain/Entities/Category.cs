@@ -8,7 +8,7 @@
         public bool IsActive { get; set; } = true;
         public DateTime CreatedOn { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedOn { get; set; }
-
+        public int SLAHours { get; set; } = 24;
         public ICollection<Request>? Requests { get; set; }
     }
 }

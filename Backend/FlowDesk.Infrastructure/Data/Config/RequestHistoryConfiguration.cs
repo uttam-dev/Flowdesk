@@ -20,9 +20,6 @@ namespace FlowDesk.Infrastructure.Data.Config
                .HasDefaultValueSql("GETUTCDATE()")
                .ValueGeneratedOnAdd();
 
-            //builder.Property(x => x.ChangedById)
-            //    .IsRequired();
-
             builder.Property(x => x.RequestId)
                 .IsRequired();
 

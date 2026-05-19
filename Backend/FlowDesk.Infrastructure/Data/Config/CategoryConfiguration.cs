@@ -20,6 +20,10 @@ namespace FlowDesk.Infrastructure.Data.Config
             builder.HasIndex(x => x.CategoryName)
                 .IsUnique();
 
+            builder.Property(x => x.SLAHours)
+                .HasDefaultValue(24)
+                .IsRequired(true);
+
             builder.Property(x => x.IsApprovalRequired)
                 .IsRequired();
 
@@ -31,6 +35,7 @@ namespace FlowDesk.Infrastructure.Data.Config
                 .ValueGeneratedOnAdd();
 
             builder.Property(x => x.UpdatedOn)
+                .ValueGeneratedOnUpdate()
                 .IsRequired(false);
         }
     }

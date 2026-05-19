@@ -10,6 +10,8 @@ namespace FlowDesk.Application.Features.Categories.DTOs
         [Required(ErrorMessage = "Category name is required")]
         public string? CategoryName { get; set; }
 
+        public int SLAHours { get; set; }
+
         [Required(ErrorMessage = "Approve status is requried")]
         public bool? IsApprovalRequired { get; set; }
     }
