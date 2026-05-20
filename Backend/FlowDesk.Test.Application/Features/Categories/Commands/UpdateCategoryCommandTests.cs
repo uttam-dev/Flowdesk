@@ -112,8 +112,8 @@ namespace FlowDesk.Application.Tests.Features.Categories.Commands
             _mapperMock.Setup(m => m.Map(dto, category))
                 .Callback<UpdateCategoryDto, Category>((d, c) =>
                 {
-                    c.CategoryName = d.CategoryName;
-                    c.IsApprovalRequired = (bool)d.IsApprovalRequired;
+                    c.CategoryName = d.CategoryName!;
+                    c.IsApprovalRequired = (bool)d.IsApprovalRequired!;
                 });
             _mapperMock.Setup(m => m.Map<CategoryResponseDto>(category))
                 .Returns(expectedDto);
