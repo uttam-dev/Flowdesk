@@ -128,7 +128,7 @@ export function RequestTable({
               return (
                 <Fragment key={row.requestId}>
                   <TableRow
-                    className={`${roles.includes("Support") && row.isEscalated ? "bg-orange-600/10" : ""} cursor-pointer`}
+                    className={`cursor-pointer`}
                     onClick={() => toggleExpand(row)}
                   >
                     <Td className="whitespace-normal">
@@ -152,7 +152,9 @@ export function RequestTable({
                         <Badge className={statusBadgeClass(row.status)}>
                           {statusLabel(row.status)}
                         </Badge>
-                        {row.isEscalated === true ? (
+                        {row.isEscalated === true &&
+                        Number(row.status) !== REQUEST_STATUS.Resolved &&
+                        Number(row.status) !== REQUEST_STATUS.Closed ? (
                           <Badge className="mt-2 bg-orange-50 text-orange-800 ring-orange-100">
                             🚨 Escalated
                           </Badge>

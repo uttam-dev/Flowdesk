@@ -70,7 +70,13 @@ export function RequestListPage() {
     Number(request?.status) !== REQUEST_STATUS.Closed;
 
   const escalatedCount = useMemo(
-    () => items.filter((request) => request.isEscalated === true).length,
+    () =>
+      items.filter(
+        (request) =>
+          request.isEscalated === true &&
+          Number(request.status) !== REQUEST_STATUS.Resolved &&
+          Number(request.status) !== REQUEST_STATUS.Closed,
+      ).length,
     [items],
   );
 
@@ -83,7 +89,12 @@ export function RequestListPage() {
           Number(it.status) === REQUEST_STATUS.Closed,
       );
     } else if (activeTab === "escalated") {
-      result = result.filter((it) => it.isEscalated === true);
+      result = result.filter(
+        (it) =>
+          it.isEscalated === true &&
+          Number(it.status) !== REQUEST_STATUS.Resolved &&
+          Number(it.status) !== REQUEST_STATUS.Closed,
+      );
     } else if (isSupport) {
       result = result.filter(
         (it) =>

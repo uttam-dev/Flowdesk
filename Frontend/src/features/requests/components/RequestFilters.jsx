@@ -83,39 +83,50 @@ export function RequestFilters({
             </select>
           </label>
 
-          <label className="grid gap-1 text-sm font-medium text-gray-700">
-            Status
-            <select
-              className={selectClass}
-              value={status}
-              onChange={(ev) => onStatusChange(ev.target.value)}
-            >
-              <option value="">All</option>
-              {isSupport ? (
-                <>
-                  <option value={REQUEST_STATUS.Assigned}>Assigned</option>
-                  <option value={REQUEST_STATUS.InProgress}>In progress</option>
-                  <option value={REQUEST_STATUS.Resolved}>Resolved</option>
-                </>
-              ) : (
-                <>
-                  <option value={REQUEST_STATUS.Open}>Open</option>
-                  <option value={REQUEST_STATUS.PendingApproval}>
-                    Pending approval
-                  </option>
-                  <option value={REQUEST_STATUS.Approved}>Approved</option>
-                  {!hideRejected ? (
-                    <option value={REQUEST_STATUS.Rejected}>Rejected</option>
-                  ) : null}
-                  <option value={REQUEST_STATUS.Assigned}>Assigned</option>
-                  <option value={REQUEST_STATUS.InProgress}>In progress</option>
-                  <option value={REQUEST_STATUS.Resolved}>Resolved</option>
-                  <option value={REQUEST_STATUS.Closed}>Closed</option>
-                </>
-              )}
-            </select>
-          </label>
-
+          {activeTab != "all" ? (
+            ""
+          ) : (
+            <>
+              <label className="grid gap-1 text-sm font-medium text-gray-700">
+                Status
+                <select
+                  className={selectClass}
+                  value={status}
+                  onChange={(ev) => onStatusChange(ev.target.value)}
+                >
+                  <option value="">All</option>
+                  {isSupport ? (
+                    <>
+                      <option value={REQUEST_STATUS.Assigned}>Assigned</option>
+                      <option value={REQUEST_STATUS.InProgress}>
+                        In progress
+                      </option>
+                      <option value={REQUEST_STATUS.Resolved}>Resolved</option>
+                    </>
+                  ) : (
+                    <>
+                      <option value={REQUEST_STATUS.Open}>Open</option>
+                      <option value={REQUEST_STATUS.PendingApproval}>
+                        Pending approval
+                      </option>
+                      <option value={REQUEST_STATUS.Approved}>Approved</option>
+                      {!hideRejected ? (
+                        <option value={REQUEST_STATUS.Rejected}>
+                          Rejected
+                        </option>
+                      ) : null}
+                      <option value={REQUEST_STATUS.Assigned}>Assigned</option>
+                      <option value={REQUEST_STATUS.InProgress}>
+                        In progress
+                      </option>
+                      <option value={REQUEST_STATUS.Resolved}>Resolved</option>
+                      <option value={REQUEST_STATUS.Closed}>Closed</option>
+                    </>
+                  )}
+                </select>
+              </label>
+            </>
+          )}
           <label className="grid gap-1 text-sm font-medium text-gray-700">
             Priority
             <select
