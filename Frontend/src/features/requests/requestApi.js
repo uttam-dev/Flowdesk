@@ -41,6 +41,23 @@ function mapRequestRow(raw) {
     categoryName: raw.categoryName ?? raw.CategoryName ?? "",
     priority: raw.priority ?? raw.Priority ?? null,
     status: raw.status ?? raw.Status ?? null,
+    dueDate: raw.dueDate ?? raw.DueDate ?? null,
+    slaStatus: raw.slaStatus ?? raw.SlaStatus ?? raw.SLAStatus ?? "No SLA",
+    isEscalated: raw.isEscalated ?? raw.IsEscalated ?? false,
+    escalatedOn: raw.escalatedOn ?? raw.EscalatedOn ?? null,
+    escalationReason: raw.escalationReason ?? raw.EscalationReason ?? null,
+    escalatedByName: raw.escalatedByName ?? raw.EscalatedByName ?? null,
+    escalationHistory: Array.isArray(
+      raw.escalationHistory ?? raw.EscalationHistory,
+    )
+      ? (raw.escalationHistory ?? raw.EscalationHistory).map((item) => ({
+          escalationId: item.escalationId ?? item.EscalationId,
+          escalatedByName: item.escalatedByName ?? item.EscalatedByName ?? "",
+          escalatedOn: item.escalatedOn ?? item.EscalatedOn ?? null,
+          escalationReason:
+            item.escalationReason ?? item.EscalationReason ?? "",
+        }))
+      : [],
     assignedToId: raw.assignedToId ?? raw.AssignedToId ?? null,
     assignedToName:
       raw.assignedToName ??

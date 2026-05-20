@@ -1,5 +1,6 @@
 ﻿using FlowDesk.Application.Common.Exceptions;
 using FlowDesk.Application.Features.Requests.DTOs;
+using FlowDesk.Domain.Enums;
 using FlowDesk.Domain.Interfaces;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -30,6 +31,14 @@ namespace FlowDesk.Application.Features.Requests.Commands
             {
                 logger.LogWarning("Invalid RequestId {RequestId}", request.RequestId);
                 throw new BadRequestException("Invalid request id");
+            }
+
+            if (fetchedRequest.Status != RequestStatusEnum.Approved ||
+                (fetchedRequest.Category!.IsApprovalRequired == false && fetchedRequest.Status == RequestStatusEnum.Open)
+                )
+            {
+                logger.LogWarning("Invalid Requset with Id {UserId}", request.Dto.AssignToId);
+                throw new BadRequestException("Invalid Request.");
             }
 
             logger.LogInformation("Fetching User with Id {UserId}", request.Dto.AssignToId);
