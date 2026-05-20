@@ -97,6 +97,11 @@ export function RequestDetailsPage() {
       Number(detail?.status) === REQUEST_STATUS.Approved) ||
       (!detail?.approvalName &&
         Number(detail?.status) === REQUEST_STATUS.Open));
+
+  const showActions =
+    Number(detail?.status) !== REQUEST_STATUS.Closed &&
+    Number(detail?.status) !== REQUEST_STATUS.Rejected;
+
   async function refreshAll() {
     if (!id) return;
     await dispatch(fetchRequestDetail(id)).unwrap();
@@ -206,7 +211,7 @@ export function RequestDetailsPage() {
 
       <RequestDetails request={detail} />
 
-      {(canAssign && actions.length > 0) || canEscalate ? (
+      {showActions && actions.length > 0 ? (
         <div className="flex flex-wrap gap-2 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
           <p className="w-full text-sm font-medium text-gray-700">Actions</p>
           {actions.map((action) => (

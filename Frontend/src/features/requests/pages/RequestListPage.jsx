@@ -67,7 +67,9 @@ export function RequestListPage() {
   const isEscalateEligible = (request) =>
     request?.isEscalated !== true &&
     Number(request?.status) !== REQUEST_STATUS.Resolved &&
-    Number(request?.status) !== REQUEST_STATUS.Closed;
+    Number(request?.status) !== REQUEST_STATUS.Closed &&
+    Number(request?.status) !== REQUEST_STATUS.Rejected &&
+    Number(request?.status) !== REQUEST_STATUS.PendingApproval;
 
   const escalatedCount = useMemo(
     () =>
