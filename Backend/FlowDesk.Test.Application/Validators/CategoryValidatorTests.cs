@@ -1,4 +1,4 @@
-﻿using FlowDesk.Application.Common.Validators;
+using FlowDesk.Application.Common.Validators;
 using FlowDesk.Domain.Entities;
 using FluentValidation.TestHelper;
 using Xunit;
@@ -64,7 +64,7 @@ namespace FlowDesk.Application.Tests.Validators
         [Fact]
         public void Should_Not_Have_Error_For_Valid_Category()
         {
-            var now = DateTime.Now;
+            var now = DateTime.UtcNow.AddSeconds(-10);
             var model = new Category
             {
                 CategoryName = "IT",
