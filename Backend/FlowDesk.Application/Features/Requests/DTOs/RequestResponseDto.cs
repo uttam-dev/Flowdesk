@@ -21,5 +21,11 @@ namespace FlowDesk.Application.Features.Requests.DTOs
         public DateTime CreatedOn { get; set; }
         public DateTime UpdatedOn { get; set; }
         public DateTime? ClosedOn { get; set; }
+        public DateTime? DueDate { get; set; }
+        public string? SlaStatus { get; set; }
+        public bool? IsEscalated { get; set; }
+        public DateTime? EscalatedOn { get; set; }
+        public string? EscalationReason { get; set; }
+        public string? EscalatedByName { get; set; }
     }
 }

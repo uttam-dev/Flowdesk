@@ -1,5 +1,4 @@
 ﻿using FlowDesk.Domain.Enums;
-using Microsoft.VisualBasic;
 
 namespace FlowDesk.Domain.Entities
 {
@@ -27,7 +26,7 @@ namespace FlowDesk.Domain.Entities
         public bool IsEscalated { get; set; } = false;
         public DateTime? EscalatedOn { get; set; }
 
-        public int? EscalatedById { get; set; }
+        public int? EscalatedBy { get; set; }
         public User? EscalatedByUser { get; set; }
 
         public string? EscalationReason { get; set; }
@@ -38,6 +37,6 @@ namespace FlowDesk.Domain.Entities
 
         public ICollection<Comment>? Comments { get; set; }
         public ICollection<RequestHistory>? Histories { get; set; }
-        public ICollection<EscalationHistory>? EscalationHistories { get; set; }
+        public ICollection<EscalationHistory>? EscalationHistory { get; set; }
     }
 }

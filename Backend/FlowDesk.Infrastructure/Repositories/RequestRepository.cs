@@ -36,6 +36,7 @@ namespace FlowDesk.Infrastructure.Repositories
                 .ThenInclude(e => e!.Manager)
                 //.Where(r => r.Category!.IsApprovalRequired == true)
                 .Include(r => r.AssignedUser)
+                .Include(r => r.EscalatedByUser)
                 .AsQueryable();
 
             // ROLE BASED FILTER
@@ -92,6 +93,7 @@ namespace FlowDesk.Infrastructure.Repositories
                 .Include(r => r.Category)
                 .Include(r => r.Employee)
                 .Include(r => r.AssignedUser)
+                .Include(r => r.EscalatedByUser)
                 .Where(r => r.Employee != null && r.Employee.ManagerId == userId && r.Category!.IsApprovalRequired)
                 .AsQueryable();
 
@@ -125,7 +127,37 @@ namespace FlowDesk.Infrastructure.Repositories
                             .Include(r => r.Employee)
                                 .ThenInclude(e => e!.Manager!) // Suppress nullable warning as EF handles null navigation
                             .Include(r => r.AssignedUser)
+                            .Include(r => r.EscalatedByUser)
                             .FirstOrDefaultAsync(r => r.RequestId == requestId);
+        }
+
+        public Task<Request?> GetByIdWithEscalationAsync(int requestId)
+        {
+            return _context.Requests
+                            .Include(r => r.Category)
+                            .Include(r => r.Employee)
+                                .ThenInclude(e => e!.Manager!)
+                            .Include(r => r.AssignedUser)
+                            .Include(r => r.Comments)
+                            .Include(r => r.Histories)
+                            .Include(r => r.EscalatedByUser)
+                            .Include(r => r.EscalationHistory!)
+                                .ThenInclude(e => e.EscalatedByUser)
+                            .FirstOrDefaultAsync(r => r.RequestId == requestId);
+        }
+
+        public Task<List<Request>> GetBreachedRequestsAsync()
+        {
+            return _context.Requests
+                .Where(r => r.DueDate < DateTime.UtcNow
+                    && r.Status != RequestStatusEnum.Resolved
+                    && r.Status != RequestStatusEnum.Closed)
+                .ToListAsync();
+        }
+
+        public async Task AddEscalationHistoryAsync(EscalationHistory escalation)
+        {
+            await _context.EscalationHistories.AddAsync(escalation);
         }
 
         public async Task<(int Total, int Open, int PendingApproval, int Assigned, int InProgress, int Resolved, int Closed)>
@@ -177,6 +209,27 @@ namespace FlowDesk.Infrastructure.Repositories
             _context.Requests.Update(request);
             await _context.SaveChangesAsync();
             return request;
+        }
+
+        public async Task<(int WithinSla, int NearingBreach, int Breached, int Escalated)> GetSlaSummaryAsync()
+        {
+            var now = DateTime.UtcNow;
+            var activeRequests = _context.Requests.AsNoTracking()
+                .Where(r => r.Status != RequestStatusEnum.Resolved && r.Status != RequestStatusEnum.Closed);
+
+            var withinSla = await activeRequests
+                .CountAsync(r => r.DueDate != null && now <= r.DueDate.Value.AddHours(-2));
+
+            var nearingBreach = await activeRequests
+                .CountAsync(r => r.DueDate != null && now > r.DueDate.Value.AddHours(-2) && now <= r.DueDate);
+
+            var breached = await activeRequests
+                .CountAsync(r => r.DueDate != null && now > r.DueDate);
+
+            var escalated = await _context.Requests.AsNoTracking()
+                .CountAsync(r => r.IsEscalated);
+
+            return (withinSla, nearingBreach, breached, escalated);
         }
     }
 }

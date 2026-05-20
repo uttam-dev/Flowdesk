@@ -131,6 +131,29 @@ namespace FlowDesk.Api.Controllers
             });
         }
 
+        // POST: api/requests/{id}/escalate
+        [Authorize("RequireAdminRole")]
+        [HttpPost("{id}/escalate")]
+        public async Task<IActionResult> Escalate(int id, [FromBody] EscalateRequestDto dto)
+        {
+            if (dto == null || string.IsNullOrWhiteSpace(dto.EscalationReason))
+            {
+                return BadRequest(new ApiResponseDto
+                {
+                    Message = "EscalationReason is required"
+                });
+            }
+
+            int currentUserId = Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var result = await _mediator.Send(new EscalateRequestCommand(id, currentUserId, dto));
+
+            return Ok(new ApiResponseDto
+            {
+                Message = "Request escalated successfully",
+                Data = result
+            });
+        }
+
         //// POST: api/requests/{id}/status
         [Authorize(policy: "RequireSupportRole")]
         [HttpPost("{requestId}/status")]

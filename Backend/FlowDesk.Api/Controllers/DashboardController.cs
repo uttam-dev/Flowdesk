@@ -27,5 +27,17 @@ namespace FlowDesk.Api.Controllers
                 Data = data
             });
         }
+
+        [Authorize(Roles = "Admin,Support")]
+        [HttpGet("sla-summary")]
+        public async Task<IActionResult> GetSlaSummary()
+        {
+            var data = await mediator.Send(new GetSlaSummaryQuery());
+            return Ok(new ApiResponseDto
+            {
+                Message = "SLA summary fetched successfully",
+                Data = data
+            });
+        }
     }
 }

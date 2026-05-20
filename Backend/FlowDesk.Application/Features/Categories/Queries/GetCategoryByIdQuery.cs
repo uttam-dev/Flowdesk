@@ -38,6 +38,7 @@ namespace FlowDesk.Application.Features.Categories.Queries
                 CategoryName = category.CategoryName,
                 IsApprovalRequired = category.IsApprovalRequired,
                 IsActive = category.IsActive,
+                SLAHours = category.SLAHours,
                 CreatedOn = category.CreatedOn,
                 UpdatedOn = category.UpdatedOn
             };
