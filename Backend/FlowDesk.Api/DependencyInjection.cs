@@ -24,41 +24,7 @@ namespace FlowDesk.Api
             .AddDomain()
             .AddInfrastructure(configuration);
 
-            // add swagger
-            //services.AddSwaggerGen(options =>
-            //{
-            //    options.SwaggerDoc("v1", new OpenApiInfo
-            //    {
-            //        Title = "FlowDesk API",
-            //        Version = "v1"
-            //    });
-
-            //    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-            //    {
-            //        Name = "Authorization",
-            //        Type = SecuritySchemeType.Http,
-            //        Scheme = "Bearer",
-            //        BearerFormat = "JWT",
-            //        In = ParameterLocation.Header,
-            //        Description = "Enter your JWT token. Example: eyJhbGci..."
-            //    });
-
-            //    options.AddSecurityRequirement(new OpenApiSecurityRequirement
-            //    {
-            //        {
-            //            new OpenApiSecurityScheme
-            //            {
-            //                Reference = new OpenApiReference
-            //                {
-            //                    Type = ReferenceType.SecurityScheme,
-            //                    Id = "Bearer"
-            //                }
-            //            },
-            //            Array.Empty<string>()
-            //        }
-            //    });
-            //});
-
+            // add scalar
             services.AddOpenApi(options =>
             {
                 options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
@@ -143,7 +109,8 @@ namespace FlowDesk.Api
                 options.AddPolicy("AllowFrontend", policy =>
                 {
                     policy
-                    .WithOrigins("http://localhost:5173", "https://localhost:5173")
+                    .WithOrigins("http://localhost:5173", "https://localhost:5173",
+                    "http://localhost:5174", "https://localhost:5174")
                     .AllowAnyMethod()
                     .AllowCredentials()
                     .AllowAnyHeader();
