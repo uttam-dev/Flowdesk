@@ -22,6 +22,9 @@
         public ICollection<User>? Subordinates { get; set; }
         public ICollection<Request>? CreatedRequests { get; set; }
         public ICollection<Request>? AssignedRequests { get; set; }
+        public ICollection<Request>? EscalatedRequests { get; set; }
+        public ICollection<EscalationHistory>? EscalationRequestHistory { get; set; }
+
         public ICollection<Comment>? Comments { get; set; }
         public ICollection<RequestHistory>? RequestHistories { get; set; }
         public ICollection<RefreshToken>? RefreshTokens { get; set; }

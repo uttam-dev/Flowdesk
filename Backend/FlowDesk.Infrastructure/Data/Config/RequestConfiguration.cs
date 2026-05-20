@@ -64,6 +64,12 @@ namespace FlowDesk.Infrastructure.Data.Config
                 .WithMany(c => c.Requests)
                 .HasForeignKey(r => r.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne(r => r.EscalatedByUser)
+                .WithMany()
+                .HasForeignKey(r => r.EscalatedById)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

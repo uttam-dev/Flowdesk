@@ -18,6 +18,13 @@ namespace FlowDesk.Application.Features.Categories.Commands
             // logging
             logger.LogInformation("Starting {Operation} with {@Request}", nameof(UpdateCategoryCommandHandler), request);
 
+
+            if (request.Dto.SLAHours <= 0)
+            {
+                logger.LogWarning("Invalid SLAHours {SLAHours} for {Entity} with Id {EntityId} in {Operation}", request.Dto.SLAHours, "Category", request.Id, nameof(UpdateCategoryCommandHandler));
+                throw new BadRequestException("SLAHours must be greater than 0.");
+            }
+
             // logging
             logger.LogInformation("Fetching {Entity} with Id {EntityId}", "Category", request.Id);
 
@@ -34,9 +41,8 @@ namespace FlowDesk.Application.Features.Categories.Commands
             logger.LogInformation("Mapping updates to {Entity} with Id {EntityId}", "Category", request.Id);
 
             _mapper.Map(request.Dto, category);
-
             category.UpdatedOn = DateTime.UtcNow;
-
+            category.SLAHours = request.Dto.SLAHours;
             // logging
             logger.LogInformation("Updating {Entity} with Id {EntityId}", "Category", request.Id);
 

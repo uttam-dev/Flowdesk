@@ -18,6 +18,13 @@ namespace FlowDesk.Application.Features.Categories.Commands
             // logging
             logger.LogInformation("Starting {Operation} with {@Request}", nameof(CreateCategoryCommandHandler), request);
 
+            //loggin
+            if(request.Dto.SLAHours <= 0)
+            {
+                logger.LogWarning("Invalid SLAHours {SLAHours} in {Operation}", request.Dto.SLAHours, nameof(CreateCategoryCommandHandler));
+                throw new InvalidOperationException("SLA hours must be greater than zero.");
+            }
+
             // logging
             logger.LogInformation("Checking existing {Entity} with name {Entity}", "Category", request.Dto.CategoryName);
 
@@ -36,6 +43,7 @@ namespace FlowDesk.Application.Features.Categories.Commands
             var createdCate = await categoryRepository.AddAsync(new Domain.Entities.Category
             {
                 CategoryName = request.Dto.CategoryName,
+                SLAHours = request.Dto.SLAHours,
                 IsApprovalRequired = request.Dto.IsApprovalRequired,
             });
 
