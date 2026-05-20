@@ -304,7 +304,7 @@ export function RequestListPage() {
               dispatch(setActiveTab({ key: tab.key, status: tab.status }))
             }
             className={[
-              "rounded-lg px-3 py-2 text-sm font-medium transition",
+              "rounded-lg px-3 py-2 text-sm font-medium transition cursor-pointer",
               activeTab === tab.key
                 ? "bg-indigo-50 text-indigo-800 ring-1 ring-indigo-100"
                 : `${tab.key === "escalated" ? "text-orange-600 hover:text-orange-600" : "text-gray-600"} hover:bg-gray-50 hover:text-gray-900`,

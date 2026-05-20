@@ -26,7 +26,7 @@ export function Button({
   return (
     <button
       type={type}
-      className={`${base} ${v} ${className}`}
+      className={`${base} ${v} ${className} cursor-pointer`}
       disabled={disabled || loading}
       {...rest}
     >
