@@ -64,7 +64,7 @@ export function RequestComments({ comments = [], loading }) {
                   <div
                     className={`px-3.5 py-2.5 rounded-2xl leading-[1.4] ${
                       isMine
-                        ? "bg-indigo-600 text-white rounded-br-sm"
+                        ? "bg-green-600/80 text-white rounded-br-sm"
                         : "bg-gray-100 text-gray-900 rounded-bl-sm"
                     }`}
                   >
