@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Text;
-
-namespace FlowDesk.Domain.Entities
+﻿namespace FlowDesk.Domain.Entities
 {
     public class EscalationHistory
     {
-        public int EscalationHistoryId { get; set; }
+        public int EscalationId { get; set; }
         public int RequestId { get; set; }
         public Request? Request { get; set; }
 
@@ -16,7 +10,7 @@ namespace FlowDesk.Domain.Entities
         public User? EscalatedByUser { get; set; }
 
         public DateTime EscalatedOn { get; set; }
-        public string? EscalationReason { get; set; }
+        public string EscalationReason { get; set; } = string.Empty;
         public DateTime CreatedOn { get; set; }
     }
 }

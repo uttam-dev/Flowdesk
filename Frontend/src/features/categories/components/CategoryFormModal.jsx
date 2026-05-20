@@ -24,7 +24,9 @@ function CategoryFormModalInner({
   const [approval, setApproval] = useState(() =>
     category?.isApprovalRequired ? "yes" : "no",
   );
+  const [slaHours, setSlaHours] = useState(() => category?.slaHours ?? 24);
   const [fieldError, setFieldError] = useState(null);
+  const [slaHoursError, setSlaHoursError] = useState(null);
   const [error, setError] = useState(null);
 
   function handleSubmit(e) {
@@ -45,11 +47,22 @@ function CategoryFormModalInner({
       setError(null);
       return;
     }
+    if (
+      !slaHours ||
+      Number(slaHours) <= 0 ||
+      !Number.isInteger(Number(slaHours))
+    ) {
+      setSlaHoursError("SLA Hours must be a positive whole number");
+      setError(null);
+      return;
+    }
     setFieldError(null);
+    setSlaHoursError(null);
     setError(null);
     onSubmit({
       categoryName: trimmed,
       isApprovalRequired: approval === "yes",
+      slaHours: Number(slaHours),
     });
   }
 
@@ -130,6 +143,43 @@ function CategoryFormModalInner({
             <option value="no">No</option>
             <option value="yes">Yes</option>
           </select>
+        </div>
+        <div className="flex w-full flex-col gap-1.5 text-left">
+          <label
+            htmlFor="slaHours"
+            className="text-sm font-medium text-gray-700"
+          >
+            SLA Hours
+          </label>
+          <input
+            id="slaHours"
+            type="number"
+            min={1}
+            placeholder="e.g. 24"
+            value={slaHours}
+            onChange={(ev) => {
+              setSlaHours(ev.target.value);
+              if (slaHoursError) setSlaHoursError(null);
+              if (error) setError(null);
+            }}
+            disabled={saving}
+            className={`w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm transition-all duration-200 placeholder:text-gray-400 hover:border-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500 disabled:hover:border-gray-300 ${slaHoursError ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""}`}
+            aria-invalid={Boolean(slaHoursError)}
+            aria-describedby={slaHoursError ? "slaHours-error" : undefined}
+          />
+          <small className="text-xs text-gray-500">
+            Time limit in hours to resolve this request type. Default is 24
+            hours.
+          </small>
+          {slaHoursError ? (
+            <p
+              id="slaHours-error"
+              className="text-red-500 text-sm mt-1"
+              role="alert"
+            >
+              {slaHoursError}
+            </p>
+          ) : null}
         </div>
       </form>
     </Modal>

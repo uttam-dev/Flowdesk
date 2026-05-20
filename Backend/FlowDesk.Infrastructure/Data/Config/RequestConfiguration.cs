@@ -35,6 +35,12 @@ namespace FlowDesk.Infrastructure.Data.Config
             builder.Property(x => x.ClosedOn)
                 .IsRequired(false);
 
+            builder.Property(x => x.IsSLABreached)
+                .HasDefaultValue(false);
+
+            builder.Property(x => x.IsEscalated)
+                .HasDefaultValue(false);
+
             builder.Property(x => x.Priority)
                 .HasConversion<int>()
                 .IsRequired();
@@ -67,7 +73,7 @@ namespace FlowDesk.Infrastructure.Data.Config
 
             builder.HasOne(r => r.EscalatedByUser)
                 .WithMany()
-                .HasForeignKey(r => r.EscalatedById)
+                .HasForeignKey(r => r.EscalatedBy)
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
         }

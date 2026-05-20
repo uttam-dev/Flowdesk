@@ -43,7 +43,6 @@ namespace FlowDesk.Application.Features.Requests.Commands
             var newRequest = mapper.Map<Request>(request.Dto);
             newRequest.RequestNumber = RequestNumberGenerator.Generate();
             newRequest.EmployeeId = request.CurrentUserId;
-            newRequest.DueDate = DateTime.UtcNow.AddDays(category.SLAHours);
 
             // STATUS DECISION
             bool isEmployee = request.CurrentUserRole == RoleEnum.Employee.ToString();
@@ -59,6 +58,10 @@ namespace FlowDesk.Application.Features.Requests.Commands
             }
 
             var createdReq = await requestRepository.AddAsync(newRequest);
+
+            var slaHours = category.SLAHours > 0 ? category.SLAHours : 24;
+            createdReq.DueDate = createdReq.CreatedOn.AddHours(slaHours);
+            await requestRepository.Update(createdReq);
 
             // ================= HISTORY =================
 

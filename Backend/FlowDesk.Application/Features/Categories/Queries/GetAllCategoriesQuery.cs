@@ -1,6 +1,5 @@
 ﻿using FlowDesk.Application.Features.Categories.DTOs;
 using FlowDesk.Domain.DTOs;
-using FlowDesk.Domain.Entities;
 using FlowDesk.Domain.Interfaces;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -30,6 +29,7 @@ namespace FlowDesk.Application.Features.Categories.Queries
                 CategoryName = c.CategoryName,
                 IsApprovalRequired = c.IsApprovalRequired,
                 IsActive = c.IsActive,
+                SLAHours = c.SLAHours,
                 CreatedOn = c.CreatedOn,
                 UpdatedOn = c.UpdatedOn
             }).ToList();

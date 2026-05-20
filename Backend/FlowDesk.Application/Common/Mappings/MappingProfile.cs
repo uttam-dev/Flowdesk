@@ -41,7 +41,18 @@ namespace FlowDesk.Application.Common.Mappings
                         .ForMember(d => d.ApprovalName,
                             opt => opt.MapFrom(s => s.Employee != null && s.Employee.Manager != null
                                 ? s.Employee.Manager.FullName
-                                : null));
+                                : null))
+                        .ForMember(d => d.EscalatedByName,
+                            opt => opt.MapFrom(s => s.EscalatedByUser != null ? s.EscalatedByUser.FullName : null))
+                        .ForMember(d => d.SlaStatus,
+                            opt => opt.Ignore());
+            CreateMap<Request, RequestDetailDto>()
+                        .IncludeBase<Request, RequestResponseDto>()
+                        .ForMember(d => d.EscalationHistory,
+                            opt => opt.MapFrom(s => s.EscalationHistory));
+            CreateMap<EscalationHistory, EscalationHistoryDto>()
+                        .ForMember(d => d.EscalatedByName,
+                            opt => opt.MapFrom(s => s.EscalatedByUser != null ? s.EscalatedByUser.FullName : string.Empty));
            //Comment
            CreateMap<Comment, CommentResponseDto>();
 

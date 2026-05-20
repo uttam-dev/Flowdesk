@@ -14,6 +14,7 @@ namespace FlowDesk.Infrastructure.Data
         public DbSet<Comment> Comments { get; set; }
         public DbSet<Request> Requests { get; set; }
         public DbSet<RequestHistory> RequestHistories { get; set; }
+        public DbSet<EscalationHistory> EscalationHistories { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<MasterRemarks> MasterRemarks { get; set; }
 

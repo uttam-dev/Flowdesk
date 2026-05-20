@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using FlowDesk.Application.Features.Requests.DTOs;
+using FlowDesk.Application.Services;
 using FlowDesk.Domain.DTOs;
 using FlowDesk.Domain.Interfaces;
 using MediatR;
@@ -12,6 +13,7 @@ namespace FlowDesk.Application.Features.Requests.Queries
     public class GetAllTeamRequestsQueryHandler(
      IRequestRepository requestRepository,
      IMapper mapper,
+     ISlaService slaService,
      ILogger<GetAllTeamRequestsQueryHandler> logger)
      : IRequestHandler<GetAllTeamRequestsQuery, PagedResult<RequestResponseDto>>
     {
@@ -29,6 +31,10 @@ namespace FlowDesk.Application.Features.Requests.Queries
             logger.LogInformation("Mapping team requests to DTOs");
 
             var requestsResponse = mapper.Map<List<RequestResponseDto>>(requestsResult);
+            foreach (var item in requestsResponse)
+            {
+                item.SlaStatus = slaService.CalculateSlaStatus(item.DueDate, item.Status.ToString());
+            }
 
             logger.LogInformation("Completed {Operation}", nameof(GetAllTeamRequestsQueryHandler));
 

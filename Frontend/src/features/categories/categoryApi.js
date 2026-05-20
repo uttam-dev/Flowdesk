@@ -10,6 +10,7 @@ function mapCategoryRow(raw) {
     isApprovalRequired: Boolean(
       raw.isApprovalRequired ?? raw.IsApprovalRequired,
     ),
+    slaHours: raw.slaHours ?? raw.SlaHours ?? raw.SLAHours ?? 24,
     isActive: Boolean(raw.isActive ?? raw.IsActive),
     createdOn: raw.createdOn ?? raw.CreatedOn ?? null,
     updatedOn: raw.updatedOn ?? raw.UpdatedOn ?? null,
@@ -86,24 +87,26 @@ export async function fetchCategoriesApi(params) {
 
 /**
  * Optional create — add if your API exposes POST /categories with the same shape as PUT body.
- * @param {{ categoryName: string, isApprovalRequired: boolean }} body
+ * @param {{ categoryName: string, isApprovalRequired: boolean, slaHours: number }} body
  */
 export async function createCategoryApi(body) {
   const { data } = await apiClient.post(BASE, {
     categoryName: body.categoryName,
     isApprovalRequired: body.isApprovalRequired,
+    slaHours: Number(body.slaHours),
   })
   return mapCategoryRow(data?.data ?? data) ?? null
 }
 
 /**
  * @param {string|number} id
- * @param {{ categoryName: string, isApprovalRequired: boolean }} body
+ * @param {{ categoryName: string, isApprovalRequired: boolean, slaHours: number }} body
  */
 export async function updateCategoryApi(id, body) {
   const { data } = await apiClient.put(`${BASE}/${id}`, {
     categoryName: body.categoryName,
     isApprovalRequired: body.isApprovalRequired,
+    slaHours: Number(body.slaHours),
   })
   return mapCategoryRow(data?.data ?? data) ?? null
 }

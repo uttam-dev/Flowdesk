@@ -12,6 +12,7 @@ namespace FlowDesk.Application
         public static IServiceCollection AddApplication(this IServiceCollection services)
         {
             services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<ISlaService, SlaService>();
             services.AddScoped<PasswordService>();
 
             var assembly = typeof(DependencyInjection).Assembly;

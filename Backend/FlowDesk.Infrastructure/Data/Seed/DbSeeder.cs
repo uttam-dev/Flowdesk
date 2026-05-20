@@ -103,6 +103,22 @@ namespace FlowDesk.Infrastructure.Data.Seed
                         new MasterRemarks { RemarksText = "Fixed successfully", ActionType = RemarksActionTypeEnum.RequestChanges }
                     );
             }
+
+            if (!context.Categories.Any())
+            {
+                context.Categories.AddRange(
+                        new Category { CategoryName = "IT Support", IsApprovalRequired = false, SLAHours = 24 },
+                        new Category { CategoryName = "Hardware Issue", IsApprovalRequired = false, SLAHours = 12 },
+                        new Category { CategoryName = "Software Installation", IsApprovalRequired = true, SLAHours = 48 },
+                        new Category { CategoryName = "Network Issue", IsApprovalRequired = false, SLAHours = 8 },
+                        new Category { CategoryName = "Access Request", IsApprovalRequired = true, SLAHours = 24 },
+                        new Category { CategoryName = "Email Issue", IsApprovalRequired = false, SLAHours = 6 },
+                        new Category { CategoryName = "VPN Issue", IsApprovalRequired = false, SLAHours = 8 },
+                        new Category { CategoryName = "System Crash", IsApprovalRequired = false, SLAHours = 4 },
+                        new Category { CategoryName = "Security Issue", IsApprovalRequired = true, SLAHours = 6 },
+                        new Category { CategoryName = "Printer Issue", IsApprovalRequired = false, SLAHours = 12 }
+                    );
+            }
             await context.SaveChangesAsync();
         }
     }
