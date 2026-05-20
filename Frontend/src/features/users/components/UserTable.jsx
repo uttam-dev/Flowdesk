@@ -82,12 +82,12 @@ export function UserTable({
       <TableHead>
         <TableRow className="hover:bg-transparent">
           <Th>Full name</Th>
-          <Th>Role</Th>
-          <Th className="hidden md:table-cell">Manager</Th>
-          <Th>Active</Th>
-          <Th className="hidden lg:table-cell">Created on</Th>
-          <Th className="hidden xl:table-cell">Updated on</Th>
-          <Th className="text-right">Actions</Th>
+          <Th className="text-center">Role</Th>
+          <Th className="text-center hidden md:table-cell">Manager</Th>
+          <Th className="text-center">Active</Th>
+          <Th className="text-center hidden lg:table-cell">Created on</Th>
+          <Th className="text-center hidden xl:table-cell">Updated on</Th>
+          <Th className="text-center">Actions</Th>
         </TableRow>
       </TableHead>
       <TableBody>
@@ -128,17 +128,17 @@ export function UserTable({
                 </Td>
 
                 {/* ── Role pill ── */}
-                <Td className="align-middle">
+                <Td className="align-middle text-center">
                   <RolePill role={row.roleName} />
                 </Td>
 
                 {/* ── Manager pill ── */}
-                <Td className="hidden align-middle md:table-cell">
+                <Td className="hidden align-middle md:table-cell text-center">
                   <ManagerPill name={row.managerName} />
                 </Td>
 
                 {/* ── Active badge (unchanged) ── */}
-                <Td className="align-middle">
+                <Td className="align-middle text-center">
                   <span
                     className={
                       row.isActive

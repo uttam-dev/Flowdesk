@@ -16,6 +16,7 @@ import {
   priorityLabel,
   statusBadgeClass,
   statusLabel,
+  truncate,
 } from "../requestUtils.js";
 
 function Badge({ className, children }) {
@@ -44,7 +45,9 @@ function getCreatedById(row) {
 const isEscalateEligible = (request) =>
   request?.isEscalated !== true &&
   Number(request?.status) !== REQUEST_STATUS.Resolved &&
-  Number(request?.status) !== REQUEST_STATUS.Closed;
+  Number(request?.status) !== REQUEST_STATUS.Closed &&
+  Number(request?.status) !== REQUEST_STATUS.Rejected &&
+  Number(request?.status) !== REQUEST_STATUS.PendingApproval;
 
 const getSLABadgeStyle = (slaStatus) => {
   switch (slaStatus) {
@@ -97,9 +100,6 @@ export function RequestTable({
     const id = row.requestId;
     setExpandedId((prev) => (prev === id ? null : id));
   }
-  {
-    console.log(rows[rows.length - 2]?.status);
-  }
   return (
     <div className="w-full min-w-0 overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
       <table className="min-w-full divide-y divide-gray-200 text-left text-sm">
@@ -132,8 +132,11 @@ export function RequestTable({
                     onClick={() => toggleExpand(row)}
                   >
                     <Td className="whitespace-normal">
-                      <p className="font-semibold text-gray-900">
-                        {row.title || "—"}
+                      <p
+                        className="font-semibold text-gray-900"
+                        title={row.title}
+                      >
+                        {truncate(row.title, 25) || "—"}
                       </p>
                       <p className="text-xs text-gray-500">
                         #{row.requestNumber || row.requestId}
@@ -197,7 +200,13 @@ export function RequestTable({
                                       REQUEST_STATUS.Resolved ||
                                     Number(row.status) === REQUEST_STATUS.Closed
                                   ? "Cannot escalate a completed request"
-                                  : undefined
+                                  : Number(row.status) ===
+                                      REQUEST_STATUS.Rejected
+                                    ? "Cannot escalate a rejected request"
+                                    : Number(row.status) ===
+                                        REQUEST_STATUS.PendingApproval
+                                      ? "Cannot escalate while pending approval"
+                                      : undefined
                             }
                             onClick={() => onAction("escalate", row)}
                           >

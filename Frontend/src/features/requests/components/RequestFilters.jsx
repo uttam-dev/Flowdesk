@@ -182,7 +182,7 @@ export function RequestFilters({
             onKeyDown={(ev) => {
               if (ev.key === "Enter") applySearch();
             }}
-            placeholder="Request number or title"
+            placeholder="Search Request number"
           />
         </label>
         <div className="flex shrink-0 gap-2">

@@ -159,6 +159,10 @@ export function fmtDate(v) {
   }
 }
 
+export function truncate(str, limit) {
+  return str.length > limit ? str.slice(0, limit) + "..." : str;
+}
+
 /** @param {import('./requestUtils.js').REQUEST_STATUS[keyof typeof REQUEST_STATUS]} status */
 export function getRowActions(row, roles) {
   const actions = [];
