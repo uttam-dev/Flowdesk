@@ -4,6 +4,7 @@ using FlowDesk.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using FlowDesk.Application.Features.Categories.DTOs;
 using FlowDesk.Domain.DTOs;
+using FlowDesk.Domain.Enums;
 
 namespace FlowDesk.Infrastructure.Repositories
 {
@@ -21,13 +22,24 @@ namespace FlowDesk.Infrastructure.Repositories
             return await _context.Categories.AnyAsync(c => c.CategoryId == categoryId);
         }
 
-        public async Task<(int,IReadOnlyList<Category>)> GetAllAsync(FilterCategoryDataQueryDto filter)
+        public async Task<(int, IReadOnlyList<Category>)> GetAllAsync(FilterCategoryDataQueryDto filter)
         {
             var query = _context.Categories
                 .AsNoTracking()
                 .AsQueryable();
 
-            if (filter.IsActive.HasValue)
+            if (filter.RoleId.HasValue && filter.RoleId != (int)RoleEnum.Admin)
+            {
+                query = query.Where(c => c.IsActive);
+                var total = query.Count();
+
+                var cates = await query
+                    .OrderBy(x => x.CategoryId)
+                    .ToListAsync();
+
+                return (total, cates);
+            }
+            else if (filter.IsActive.HasValue)
                 query = query.Where(c => c.IsActive == filter.IsActive.Value);
 
             var totalPages = query.Count();
@@ -38,7 +50,7 @@ namespace FlowDesk.Infrastructure.Repositories
                 .Take(filter.PageSize)
                 .ToListAsync();
 
-            return (totalPages,categories);
+            return (totalPages, categories);
         }
 
         public async Task<Category?> GetByIdAsync(int categoryId)

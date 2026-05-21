@@ -161,17 +161,41 @@ namespace FlowDesk.Infrastructure.Repositories
         }
 
         public async Task<(int Total, int Open, int PendingApproval, int Assigned, int InProgress, int Resolved, int Closed)>
-     GetDashboardDataAsync(int userId, RoleEnum role)
+       GetDashboardDataAsync(int userId, RoleEnum role)
         {
-            var query = _context.Requests.AsNoTracking().AsQueryable();
+            var baseQuery = _context.Requests
+                .AsNoTracking()
+                .AsQueryable();
 
-            query = role switch
+            IQueryable<Request> query;
+
+            if (role == RoleEnum.Employee)
             {
-                RoleEnum.Employee => query.Where(r => r.EmployeeId == userId),
-                RoleEnum.Manager => query.Where(r => r.Employee != null && r.Employee.ManagerId == userId),
-                RoleEnum.Support => query.Where(r => r.AssignedToId == userId),
-                _ => query
-            };
+                query = baseQuery.Where(r => r.EmployeeId == userId);
+            }
+            else if (role == RoleEnum.Manager)
+            {
+                // Get team employee ids
+                var teamIds = await _context.Users
+                    .Where(u => u.ManagerId == userId)
+                    .Select(u => u.UserId)
+                    .ToListAsync();
+
+                // Manager own requests + team pending approval
+                query = baseQuery.Where(r =>
+                    r.EmployeeId == userId // own requests
+                    || (teamIds.Contains(r.EmployeeId)
+                        && r.Status == RequestStatusEnum.PendingApproval) // team pending
+                );
+            }
+            else if (role == RoleEnum.Support)
+            {
+                query = baseQuery.Where(r => r.AssignedToId == userId);
+            }
+            else
+            {
+                query = baseQuery;
+            }
 
             var result = await query
                 .GroupBy(x => 1)

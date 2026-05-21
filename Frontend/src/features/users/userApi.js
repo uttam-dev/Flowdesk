@@ -119,19 +119,33 @@ function mapManagerOption(raw) {
 }
 
 /**
- * @param {{ pageNumber?: number, page?: number, pageSize?: number, isActive?: boolean|string }} params
+ * @param {{ pageNumber?: number, page?: number, pageSize?: number, isActive?: boolean|string, role?: number|string, email?: string }} params
  */
 export async function fetchUsersApi(params) {
   const pageNumber = params.pageNumber ?? params.page ?? 1;
   const pageSize = params.pageSize ?? 10;
   const isActive = params.isActive;
+  const role = params.role;
+  const email = params.email;
+
+  const queryParams = {
+    pageNumber,
+    pageSize,
+    IsActive: isActive === "" || isActive == null ? undefined : isActive,
+  };
+
+  // Add role if provided and not empty
+  if (role !== "" && role != null) {
+    queryParams.role = Number(role);
+  }
+
+  // Add email if provided and not empty
+  if (email && email.trim()) {
+    queryParams.email = email.trim().toLowerCase();
+  }
 
   const { data } = await apiClient.get(BASE, {
-    params: {
-      pageNumber,
-      pageSize,
-      IsActive: isActive === "" || isActive == null ? undefined : isActive,
-    },
+    params: queryParams,
   });
 
   const parsed = parseListPayload(data);

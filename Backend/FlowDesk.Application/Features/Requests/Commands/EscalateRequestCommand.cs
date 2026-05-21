@@ -34,9 +34,11 @@ namespace FlowDesk.Application.Features.Requests.Commands
                 throw new NotFoundException($"Request with ID {request.RequestId} not found.");
             }
 
-            if (requestResult.Status == RequestStatusEnum.Resolved || requestResult.Status == RequestStatusEnum.Closed)
+            if (requestResult.Status == RequestStatusEnum.PendingApproval ||
+                requestResult.Status == RequestStatusEnum.Resolved ||
+                requestResult.Status == RequestStatusEnum.Closed)
             {
-                throw new BadRequestException("Cannot escalate a resolved or closed request");
+                throw new BadRequestException("Cannot escalate this request");
             }
 
             if (requestResult.IsEscalated)

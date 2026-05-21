@@ -33,11 +33,14 @@ namespace FlowDesk.Application.Features.Requests.Commands
                 throw new BadRequestException("Invalid request id");
             }
 
-            if (fetchedRequest.Status != RequestStatusEnum.Approved ||
-                (fetchedRequest.Category!.IsApprovalRequired == false && fetchedRequest.Status == RequestStatusEnum.Open)
-                )
+            var isApprovalPending = fetchedRequest.Category?.IsApprovalRequired == true && fetchedRequest.Status == RequestStatusEnum.Open;
+
+            var isNotOpen =
+                fetchedRequest.Status != RequestStatusEnum.Open;
+
+            if (isApprovalPending || isNotOpen)
             {
-                logger.LogWarning("Invalid Requset with Id {UserId}", request.Dto.AssignToId);
+                logger.LogWarning("Invalid Request with Id {RequestId}", fetchedRequest.RequestId);
                 throw new BadRequestException("Invalid Request.");
             }
 

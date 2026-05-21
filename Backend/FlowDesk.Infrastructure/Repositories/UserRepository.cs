@@ -63,8 +63,11 @@ namespace FlowDesk.Infrastructure.Repositories
                 .AsQueryable();
 
             // Optional filters
-            if (!string.IsNullOrWhiteSpace(filter.Role))
-                query = query.Where(u => u.Role.RoleName.ToLower() == filter.Role.ToLower());
+            if (filter.Email != null)
+                query = query.Where(u => u.Email.Contains(filter.Email));
+
+            if (filter.Role != null)
+                query = query.Where(u => u.RoleId == filter.Role);
 
             if (filter.IsActive.HasValue)
                 query = query.Where(u => u.IsActive == filter.IsActive.Value);
