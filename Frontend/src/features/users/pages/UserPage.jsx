@@ -3,9 +3,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
 import { Button } from "../../../components/ui/Button.jsx";
 import { ConfirmationModal } from "../../../components/ui/ConfirmationModal.jsx";
+import { BulkUploadButton } from "../components/BulkUploadButton.jsx";
+import { BulkUploadModal } from "../components/BulkUploadModal.jsx";
 import { UserTable } from "../components/UserTable.jsx";
 import { UserFormModal } from "../components/UserFormModal.jsx";
-import { selectAuthUser } from "../../auth/authSlice.js";
+import { selectAuthUser, selectRoleNames } from "../../auth/authSlice.js";
 import { parseApiError } from "../userApi.js";
 import {
   activateUser,
@@ -36,6 +38,7 @@ import {
 export function UserPage() {
   const dispatch = useDispatch();
   const authUser = useSelector(selectAuthUser);
+  const authRoles = useSelector(selectRoleNames);
   const items = useSelector(selectUserList);
   const loading = useSelector(selectUserLoading);
   const error = useSelector(selectUserError);
@@ -55,6 +58,7 @@ export function UserPage() {
   const [formSaving, setFormSaving] = useState(false);
   const [formServerError, setFormServerError] = useState(null);
   const [searchEmail, setSearchEmail] = useState("");
+  const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
 
   const [confirm, setConfirm] = useState({
     open: false,
@@ -81,6 +85,10 @@ export function UserPage() {
 
   const existingEmails = items.map((i) => i.email).filter(Boolean);
   const currentUserId = authUser?.id ?? authUser?.userId ?? null;
+  const currentUserRole = authUser?.role ?? authRoles[0] ?? "";
+  const isAdmin =
+    String(currentUserRole).toLowerCase() === "admin" ||
+    authRoles.some((r) => String(r).toLowerCase() === "admin");
 
   function openAdd() {
     setFormKey((k) => k + 1);
@@ -228,9 +236,14 @@ export function UserPage() {
             </select>
           </label>
         </div>
-        <Button type="button" variant="primary" onClick={openAdd}>
-          Add user
-        </Button>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
+          {isAdmin ? (
+            <BulkUploadButton onClick={() => setIsBulkModalOpen(true)} />
+          ) : null}
+          <Button type="button" variant="primary" onClick={openAdd}>
+            Add user
+          </Button>
+        </div>
       </div>
 
       <div className="flex flex-col gap-3">
@@ -313,6 +326,12 @@ export function UserPage() {
         saving={formSaving || mutating}
         serverError={formServerError}
         onSubmit={handleFormSubmit}
+      />
+
+      <BulkUploadModal
+        open={isBulkModalOpen}
+        onClose={() => setIsBulkModalOpen(false)}
+        onCompleted={() => dispatch(fetchUsers(currentQuery()))}
       />
 
       <ConfirmationModal
