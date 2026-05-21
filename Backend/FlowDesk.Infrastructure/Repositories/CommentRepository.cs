@@ -33,7 +33,7 @@ namespace FlowDesk.Infrastructure.Repositories
         {
             return await _context.Comments
                 .Include(c => c.Commenter)
-                    .ThenInclude(u => u.Role)
+                    .ThenInclude(u => u!.Role)
                 .Where(c => c.RequestId == requestId)
                 .OrderBy(c => c.CreatedOn)
                 .ToListAsync();

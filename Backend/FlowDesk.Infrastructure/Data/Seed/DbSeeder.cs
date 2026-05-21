@@ -38,28 +38,28 @@ namespace FlowDesk.Infrastructure.Data.Seed
             // Only on development environment, remove in production
             if (!context.Users.Any())
             {
-                var passHashed = PasswordService.HashPassword("12345");
+                var passHashed = PasswordService.HashPassword("12345678");
 
                 context.Users.Add(new User
                 {
                     FullName = "Admin User",
-                    Email = "admin@test.com",
+                    Email = "admin@flowdesk.in",
                     PasswordHash = passHashed,
                     RoleId = 3
                 });
 
                 var dummyUsers = new List<User>
                 {
-                    new User { FullName = "David Brown",    Email = "david@test.com",  PasswordHash = passHashed, RoleId = 1 },
-                    new User { FullName = "Eva Martinez",   Email = "eva@test.com",    PasswordHash = passHashed, RoleId = 1 },
-                    new User { FullName = "Frank Wilson",   Email = "frank@test.com",  PasswordHash = passHashed, RoleId = 1 },
-                    new User { FullName = "Grace Lee",      Email = "grace@test.com",  PasswordHash = passHashed, RoleId = 1 },
-                    new User { FullName = "Alice Johnson",  Email = "alice@test.com",  PasswordHash = passHashed, RoleId = 2 },
-                    new User { FullName = "Bob Smith",      Email = "bob@test.com",    PasswordHash = passHashed, RoleId = 2 },
-                    new User { FullName = "Carol White",    Email = "carol@test.com",  PasswordHash = passHashed, RoleId = 2 },
-                    new User { FullName = "Henry Taylor",   Email = "henry@test.com",  PasswordHash = passHashed, RoleId = 4 },
-                    new User { FullName = "Isla Anderson",  Email = "isla@test.com",   PasswordHash = passHashed, RoleId = 4 },
-                    new User { FullName = "Jack Thomas",    Email = "jack@test.com",   PasswordHash = passHashed, RoleId = 4 },
+                    new User { FullName = "Priya Desai",        Email = "priya.desai@flowdesk.in",  PasswordHash = passHashed, RoleId = 2 },
+                    new User { FullName = "Neha Joshi",         Email = "neha.joshi@flowdesk.in",    PasswordHash = passHashed, RoleId = 2 },
+                    new User { FullName = "Vikas Yadav",        Email = "vikas.yadav@flowdesk.in",  PasswordHash = passHashed, RoleId = 2 },
+                    new User { FullName = "Amit Sharma",        Email = "amit.sharma@flowdesk.in",  PasswordHash = passHashed, RoleId = 1 },
+                    new User { FullName = "Nayan Patel",        Email = "nayan.patel@flowdesk.in",    PasswordHash = passHashed, RoleId = 1 },
+                    new User { FullName = "Rohit Mehta",        Email = "rohit.mehta@flowdesk.in",  PasswordHash = passHashed, RoleId = 1 },
+                    new User { FullName = "Pooja Verma",        Email = "pooja.verma@flowdesk.in",  PasswordHash = passHashed, RoleId = 4 },
+                    new User { FullName = "Ankit Gupta",        Email = "ankit.gupta@flowdesk.in",   PasswordHash = passHashed, RoleId = 4 },
+                    new User { FullName = "Rahul Nair",         Email = "rahul.nair@flowdesk.in",   PasswordHash = passHashed, RoleId = 4 },
+                    new User { FullName = "Uttam Prajapati",    Email = "uttam.prajapati@flowdesk.in",   PasswordHash = passHashed, RoleId = 3 },
                 };
 
                 context.Users.AddRange(dummyUsers);

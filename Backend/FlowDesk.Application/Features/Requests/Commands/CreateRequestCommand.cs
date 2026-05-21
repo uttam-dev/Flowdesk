@@ -98,7 +98,10 @@ namespace FlowDesk.Application.Features.Requests.Commands
                 response.ApprovalName = manager?.FullName;
             }
 
-            logger.LogInformation("Completed {Operation} for RequestId {RequestId}", createdReq.RequestId);
+            if (logger.IsEnabled(LogLevel.Information))
+            {
+                logger.LogInformation("Completed {Operation} for RequestId {RequestId}", nameof(CreateRequestCommandHandler), createdReq.RequestId);
+            }
 
             return response;
         }

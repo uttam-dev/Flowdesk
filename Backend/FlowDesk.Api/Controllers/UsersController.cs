@@ -1,10 +1,15 @@
-﻿using FlowDesk.Application.Features.Users.Commands;
+﻿using FlowDesk.Application.Common.Exceptions;
+using FlowDesk.Application.Common.Interfaces;
+using FlowDesk.Application.Features.Users.Commands;
 using FlowDesk.Application.Features.Users.DTOs;
 using FlowDesk.Application.Features.Users.Queries;
+using FlowDesk.Application.Services;
 using FlowDesk.Domain.DTOs;
+using FlowDesk.Domain.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.FileProviders;
 using System.Security.Claims;
 
 namespace FlowDesk.Api.Controllers
@@ -56,7 +61,7 @@ namespace FlowDesk.Api.Controllers
             return Ok(new ApiResponseDto() { Message = "Support users fetched successfully.", Data = supportUsers });
         }
 
-        
+
         //Get all roles
         [Authorize("RequireAdminRole")]
         [HttpGet("roles")]
@@ -76,6 +81,35 @@ namespace FlowDesk.Api.Controllers
             return Ok(new ApiResponseDto() { Message = "User created successfully.", Data = user });
         }
 
+        // Create Bulk user 
+        [HttpPost("bulk-upload")]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> BulkUpload([FromForm] BulkUploadRequest Dto, [FromServices] IFileParser parser)
+        {
+            if (Dto.File == null || Dto.File.Length == 0)
+                throw new BadRequestException("Invalid file");
+
+            var ext = Path.GetExtension(Dto.File.FileName).ToLower();
+
+            if (ext != ".csv" && ext != ".xlsx")
+                throw new BadRequestException("Only CSV or Excel allowed");
+
+            using var stream = Dto.File.OpenReadStream();
+
+            // Convert here
+            var users = await parser.ParseAsync(stream, Dto.File.FileName);
+
+            var result = await _mediator.Send(new BulkCreateUsersCommand
+            {
+                Users = users
+            });
+
+            return Ok(new ApiResponseDto
+            {
+                Message = "Bulk user import completed successfully.",
+                Data = result
+            });
+        }
 
         [Authorize(policy: "RequireAdminRole")]
         //Reset user password
@@ -112,8 +146,8 @@ namespace FlowDesk.Api.Controllers
         public async Task<IActionResult> ActiveUser(int id)
         {
             var currentUserId = Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
-            await _mediator.Send(new ActiveUserCommand(id,currentUserId));
-            return Ok(new ApiResponseDto() { Message="User activated successfully."});
+            await _mediator.Send(new ActiveUserCommand(id, currentUserId));
+            return Ok(new ApiResponseDto() { Message = "User activated successfully." });
         }
 
         [Authorize("RequireAdminRole")]
@@ -123,8 +157,13 @@ namespace FlowDesk.Api.Controllers
         {
             var currentUserId = Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
             await _mediator.Send(new DeactiveUserCommand(id, currentUserId));
-            return Ok(new ApiResponseDto() { Message="User activated successfully."});
+            return Ok(new ApiResponseDto() { Message = "User activated successfully." });
         }
 
+    }
+
+    public class BulkUploadRequest
+    {
+        public IFormFile File { get; set; }
     }
 }

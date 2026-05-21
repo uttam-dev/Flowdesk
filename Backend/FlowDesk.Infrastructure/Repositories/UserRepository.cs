@@ -1,11 +1,10 @@
-﻿using FlowDesk.Domain.DTOs;
+﻿using EFCore.BulkExtensions;
+using FlowDesk.Domain.DTOs;
 using FlowDesk.Domain.Entities;
 using FlowDesk.Domain.Enums;
 using FlowDesk.Domain.Interfaces;
-using FlowDesk.Domain.Utils;
 using FlowDesk.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-
 
 namespace FlowDesk.Infrastructure.Repositories
 {
@@ -127,6 +126,18 @@ namespace FlowDesk.Infrastructure.Repositories
                 .FirstOrDefaultAsync();
 
             return manager;
+        }
+        public async Task<List<string>> GetExistingEmailsAsync(List<string> emails)
+        {
+            return await _context.Users
+                .Where(x => emails.Contains(x.Email))
+                .Select(x => x.Email.ToLower())
+                .ToListAsync();
+        }
+
+        public async Task BulkInsertAsync(List<User> users)
+        {
+            await _context.BulkInsertAsync(users);
         }
 
     }
