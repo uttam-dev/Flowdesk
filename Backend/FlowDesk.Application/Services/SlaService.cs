@@ -1,3 +1,5 @@
+using FlowDesk.Domain.Interfaces;
+
 namespace FlowDesk.Application.Services
 {
     public class SlaService : ISlaService

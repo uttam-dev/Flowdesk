@@ -17,6 +17,8 @@ namespace FlowDesk.Domain.Interfaces
         Task HardDelete(User user);
         Task<bool> ExistsAsync(int userId);
         Task<bool> EmailExistsAsync(string email);
+        Task<List<string>> GetExistingEmailsAsync(List<string> emails);
+        Task BulkInsertAsync(List<User> users);
         Task SaveChangesAsync();
     }
 }

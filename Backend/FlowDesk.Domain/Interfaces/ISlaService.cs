@@ -1,4 +1,4 @@
-namespace FlowDesk.Application.Services
+namespace FlowDesk.Domain.Interfaces
 {
     public interface ISlaService
     {
