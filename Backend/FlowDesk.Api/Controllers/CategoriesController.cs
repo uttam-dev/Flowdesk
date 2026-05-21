@@ -8,6 +8,7 @@ using FlowDesk.Domain.Utils;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace FlowDesk.Api.Controllers
 {
@@ -20,6 +21,10 @@ namespace FlowDesk.Api.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] FilterCategoryDataQueryDto query)
         {
+            string role = User.FindFirst(ClaimTypes.Role)?.Value!;
+
+            query.RoleId = (int)Enum.Parse<RoleEnum>(role);
+
             var result = await _mediator.Send(new GetAllCategoriesQuery(query));
 
             if (User.IsInRole(RoleEnum.Admin.ToString()))
