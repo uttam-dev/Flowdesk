@@ -182,7 +182,7 @@ export function getRowActions(row, roles) {
       key: "assign",
       label: "Assign",
       variant: "primary",
-      disabled: !assignEnabled,
+      disabled: !assignEnabled || status === REQUEST_STATUS.Assigned,
     });
   }
 
