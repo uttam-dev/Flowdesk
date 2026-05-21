@@ -142,7 +142,7 @@ export function RequestTable({
                         #{row.requestNumber || row.requestId}
                       </p>
                     </Td>
-                    <Td className="max-w-[10rem] truncate">
+                    <Td className="max-w-40 truncate">
                       {row.categoryName || "—"}
                     </Td>
                     <Td>

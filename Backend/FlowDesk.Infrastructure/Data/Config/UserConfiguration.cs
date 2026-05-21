@@ -19,6 +19,11 @@ namespace FlowDesk.Infrastructure.Data.Config
                 .HasMaxLength(150);
 
             builder.HasIndex(x => x.Email)
+                .IsUnique()
+                .HasDatabaseName("IX_Users_Email");
+
+
+            builder.HasIndex(x => x.Email)
                 .IsUnique();
 
             builder.Property(x => x.PasswordHash)
@@ -46,7 +51,7 @@ namespace FlowDesk.Infrastructure.Data.Config
                 .WithMany(x => x.Subordinates)
                 .HasForeignKey(x => x.ManagerId)
                 .OnDelete(DeleteBehavior.Restrict);
-    
+
         }
     }
 }

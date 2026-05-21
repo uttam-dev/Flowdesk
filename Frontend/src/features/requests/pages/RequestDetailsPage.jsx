@@ -257,7 +257,8 @@ export function RequestDetailsPage() {
     isAdmin &&
     detail?.isEscalated === false &&
     Number(detail?.status) !== REQUEST_STATUS.Resolved &&
-    Number(detail?.status) !== REQUEST_STATUS.Closed;
+    Number(detail?.status) !== REQUEST_STATUS.Closed &&
+    Number(detail?.status) !== REQUEST_STATUS.PendingApproval;
 
   const canAssign =
     isAdmin &&
