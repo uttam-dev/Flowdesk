@@ -17,15 +17,15 @@ export const authTokenBridge = {
 }
 
 export function attachAuthTokenBridge(store, actions) {
-  const { setCredentials, logout } = actions
+  const { setCredentials, clearUser } = actions
   bridge = {
-    getAccessToken: () => store.getState().auth.accessToken,
-    getRefreshToken: () => store.getState().auth.refreshToken,
+    getAccessToken: () => null,
+    getRefreshToken: () => null,
     setTokens: (payload) => {
       store.dispatch(setCredentials(payload))
     },
     clearAuth: () => {
-      store.dispatch(logout())
+      store.dispatch(clearUser())
     },
   }
 }

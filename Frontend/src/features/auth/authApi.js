@@ -10,12 +10,14 @@ export async function loginRequest(credentials) {
     email: credentials.email,
     password: credentials.password,
   })
-  const mapped = mapAuthResponse(data)
-  if (!mapped.accessToken) {
-    const err = new Error('Login response did not include an access token')
-    // @ts-ignore
-    err.response = { data }
-    throw err
-  }
-  return mapped
+  return mapAuthResponse(data)
+}
+
+export async function getCurrentUserRequest() {
+  const { data } = await apiClient.get(AUTH_ENDPOINTS.me)
+  return mapAuthResponse(data).user
+}
+
+export async function logoutRequest() {
+  await apiClient.post(AUTH_ENDPOINTS.logout)
 }

@@ -3,15 +3,10 @@ import {
   createSelector,
   createSlice,
 } from "@reduxjs/toolkit";
-import { loginRequest } from "./authApi.js";
-import { readPersistedAuth, writePersistedAuth } from "./authStorage.js";
-
-const persisted = readPersistedAuth();
+import { getCurrentUserRequest, loginRequest } from "./authApi.js";
 
 const initialState = {
-  accessToken: persisted?.accessToken ?? null,
-  refreshToken: persisted?.refreshToken ?? null,
-  user: persisted?.user ?? null,
+  user: null,
   status: "idle",
   error: null,
 };
@@ -41,24 +36,32 @@ export const login = createAsyncThunk(
   },
 );
 
+export const restoreSession = createAsyncThunk(
+  "auth/restoreSession",
+  async (_, { rejectWithValue }) => {
+    try {
+      return await getCurrentUserRequest();
+    } catch {
+      return rejectWithValue(null);
+    }
+  },
+);
+
 const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
     setCredentials(state, action) {
-      const { accessToken, refreshToken, user } = action.payload;
-      state.accessToken = accessToken;
-      if (refreshToken !== undefined) state.refreshToken = refreshToken;
+      const { user } = action.payload;
       if (user !== undefined) state.user = user;
-      writePersistedAuth(state);
+    },
+    clearUser(state) {
+      state.user = null;
     },
     logout(state) {
-      state.accessToken = null;
-      state.refreshToken = null;
       state.user = null;
       state.error = null;
       state.status = "idle";
-      writePersistedAuth(state);
     },
     clearError(state) {
       state.error = null;
@@ -72,23 +75,30 @@ const authSlice = createSlice({
       })
       .addCase(login.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.accessToken = action.payload.accessToken;
-        state.refreshToken = action.payload.refreshToken;
         state.user = action.payload.user;
-        writePersistedAuth(state);
       })
       .addCase(login.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload ?? "Login failed";
+      })
+      .addCase(restoreSession.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.user = action.payload;
+        state.error = null;
+      })
+      .addCase(restoreSession.rejected, (state) => {
+        state.status = "idle";
+        state.user = null;
+        state.error = null;
       });
   },
 });
 
-export const { setCredentials, logout, clearError } = authSlice.actions;
+export const { setCredentials, clearUser, logout, clearError } = authSlice.actions;
 export default authSlice.reducer;
 
 export const selectAuth = (state) => state.auth;
-export const selectIsAuthenticated = (state) => Boolean(state.auth.accessToken);
+export const selectIsAuthenticated = (state) => Boolean(state.auth.user);
 export const selectAuthStatus = (state) => state.auth.status;
 export const selectAuthUser = (state) => state.auth.user;
 

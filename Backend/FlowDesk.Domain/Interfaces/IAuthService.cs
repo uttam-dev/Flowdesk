@@ -4,7 +4,8 @@ namespace FlowDesk.Domain.Interfaces
 {
     public interface IAuthService
     {
-        Task<AuthResponseDto> LoginAsync(LoginRequestDto request);
-        Task<AuthResponseDto> RefreshTokenAsync(RefreshTokenDto refreshToken);
+        Task<LoginResponseDto> LoginAsync(LoginRequestDto request);
+        Task<RefreshTokenResponseDto> RefreshTokenAsync(string? refreshToken);
+        Task LogoutAsync(string? refreshToken);
     }
 }

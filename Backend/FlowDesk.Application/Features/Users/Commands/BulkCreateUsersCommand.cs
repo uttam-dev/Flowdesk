@@ -47,7 +47,7 @@ namespace FlowDesk.Application.Features.Users.Commands
 
             var existingEmails = await userRepository.GetExistingEmailsAsync(emails);
             var existingSet = existingEmails.ToHashSet();
-            var passwordHash = PasswordService.HashPassword("");
+            var passwordHash = PasswordService.HashPassword("12345678");
 
             foreach (var item in request.Users)
             {

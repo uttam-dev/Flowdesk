@@ -6,7 +6,7 @@ using FlowDesk.Domain.Interfaces;
 
 namespace FlowDesk.Infrastructure.Services
 {
-    public class RefreshTokenService(AppDbContext _context, IConfiguration configuration): IRefreshTokenService
+    public class RefreshTokenService(AppDbContext _context, IConfiguration configuration) : IRefreshTokenService
     {
         public async Task SaveRefreshToken(int userId, string token)
         {
@@ -25,6 +25,13 @@ namespace FlowDesk.Infrastructure.Services
         {
             return await _context.RefreshTokens
                 .FirstOrDefaultAsync(t => t.Token == token && !t.IsRevoked);
+        }
+
+        public async Task<RefreshToken?> Update(RefreshToken token)
+        {
+            _context.RefreshTokens.Update(token);
+            await _context.SaveChangesAsync();
+            return token;
         }
     }
 }
