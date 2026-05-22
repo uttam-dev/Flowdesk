@@ -6,5 +6,6 @@ namespace FlowDesk.Domain.Interfaces
     {
         Task SaveRefreshToken(int userId, string token);
         Task<RefreshToken?> GetToken(string token);
+        Task<RefreshToken?> Update(RefreshToken token);
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace FlowDesk.Domain.DTOs
 {
-    public class AuthResponseDto
+    public class LoginResponseDto
     {
         public string? FullName { get; set; }
         public string? Email { get; set; }

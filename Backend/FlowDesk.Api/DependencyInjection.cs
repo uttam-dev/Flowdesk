@@ -86,6 +86,24 @@ namespace FlowDesk.Api
                             ErrorCode = "FORBIDDEN",
                             TraceId = context.HttpContext.TraceIdentifier
                         });
+                    },
+                    OnMessageReceived = context =>
+                    {
+                        string token = null;
+
+                        // 1️ Check Authorization header first (mobile apps, Postman, external APIs)
+                        var authHeader = context.Request.Headers["Authorization"].ToString();
+                        if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
+                            token = authHeader.Substring(7);
+
+                        // 2️ Fallback to HttpOnly cookie (web browser)
+                        if (string.IsNullOrEmpty(token))
+                            token = context.Request?.Cookies[configuration["CookieOptions:AccessTokenName"]!]!;
+
+                        if (!string.IsNullOrEmpty(token))
+                            context.Token = token;
+
+                        return Task.CompletedTask;
                     }
                 };
 

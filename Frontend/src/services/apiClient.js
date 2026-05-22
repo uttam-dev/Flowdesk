@@ -4,9 +4,12 @@ import { API_BASE_URL } from "../config/env.js";
 import { authTokenBridge } from "./authTokenBridge.js";
 
 const REFRESH_PATH = "/auth/refresh";
+const ME_PATH = "/auth/me";
+const LOGOUT_PATH = "/auth/logout";
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
@@ -31,9 +34,26 @@ function isRefreshRequest(config) {
   return url.replace(/^\//, "") === REFRESH_PATH.replace(/^\//, "");
 }
 
+function isLogoutRequest(config) {
+  const url = config?.url ?? "";
+  return url.replace(/^\//, "") === LOGOUT_PATH.replace(/^\//, "");
+}
+
 function isAuthLoginRequest(config) {
   const u = (config?.url ?? "").toLowerCase();
   return u.includes("/login");
+}
+
+function redirectToLogin() {
+  if (typeof window === "undefined") return;
+  if (window.location.pathname !== "/login") {
+    window.location.assign("/login");
+  }
+}
+
+async function fetchCurrentUserAfterRefresh() {
+  const { data } = await apiClient.get(ME_PATH, { _skipAuthRefresh: true });
+  return mapAuthResponse(data).user;
 }
 
 apiClient.interceptors.request.use((config) => {
@@ -53,64 +73,40 @@ apiClient.interceptors.response.use(
     if (
       status !== 401 ||
       originalRequest._retry ||
+      originalRequest._skipAuthRefresh ||
       isRefreshRequest(originalRequest) ||
+      isLogoutRequest(originalRequest) ||
       isAuthLoginRequest(originalRequest)
     ) {
       return Promise.reject(error);
     }
 
-    const refreshToken = authTokenBridge.getRefreshToken();
-    if (!refreshToken) {
-      authTokenBridge.clearAuth();
-      return Promise.reject(error);
-    }
+    originalRequest._retry = true;
 
     if (isRefreshing) {
       return new Promise((resolve, reject) => {
         failedQueue.push({ resolve, reject });
       })
-        .then((token) => {
-          originalRequest.headers.Authorization = `Bearer ${token}`;
+        .then(() => {
           return apiClient(originalRequest);
         })
         .catch((err) => Promise.reject(err));
     }
 
-    originalRequest._retry = true;
     isRefreshing = true;
 
     try {
-      const { data } = await axios.post(
-        `${API_BASE_URL}${REFRESH_PATH}`,
-        { refreshToken },
-        { headers: { "Content-Type": "application/json" } },
-      );
+      await apiClient.post(REFRESH_PATH, undefined, { _skipAuthRefresh: true });
+      const user = await fetchCurrentUserAfterRefresh();
 
-      const mapped = mapAuthResponse(data);
+      authTokenBridge.setTokens({ user });
 
-      const accessToken = mapped.accessToken;
-      const nextRefresh = mapped.refreshToken ?? refreshToken;
-
-      if (!accessToken) {
-        throw new Error("Refresh response missing access token");
-      }
-
-      const payload = {
-        accessToken,
-        refreshToken: nextRefresh,
-      };
-      if (mapped.user) {
-        payload.user = mapped.user;
-      }
-
-      authTokenBridge.setTokens(payload);
-
-      processQueue(null, accessToken);
-      originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+      processQueue(null);
       return apiClient(originalRequest);
     } catch (refreshErr) {
       processQueue(refreshErr, null);
       authTokenBridge.clearAuth();
+      redirectToLogin();
       return Promise.reject(refreshErr);
     } finally {
       isRefreshing = false;

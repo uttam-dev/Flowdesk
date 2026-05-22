@@ -3,13 +3,10 @@ using FlowDesk.Application.Common.Interfaces;
 using FlowDesk.Application.Features.Users.Commands;
 using FlowDesk.Application.Features.Users.DTOs;
 using FlowDesk.Application.Features.Users.Queries;
-using FlowDesk.Application.Services;
 using FlowDesk.Domain.DTOs;
-using FlowDesk.Domain.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.FileProviders;
 using System.Security.Claims;
 
 namespace FlowDesk.Api.Controllers
@@ -164,6 +161,6 @@ namespace FlowDesk.Api.Controllers
 
     public class BulkUploadRequest
     {
-        public IFormFile File { get; set; }
+        public IFormFile? File { get; set; }
     }
 }

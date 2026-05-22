@@ -11,7 +11,7 @@ namespace FlowDesk.Application.Services
         IRefreshTokenService _refreshTokenService,
         ILogger<AuthService> _logger) : IAuthService
     {
-        public async Task<AuthResponseDto> LoginAsync(LoginRequestDto request)
+        public async Task<LoginResponseDto> LoginAsync(LoginRequestDto request)
         {
             _logger.LogInformation("Starting {Operation}", nameof(LoginAsync));
 
@@ -42,7 +42,7 @@ namespace FlowDesk.Application.Services
 
             _logger.LogInformation("Login successful for UserId {UserId}", user.UserId);
 
-            return new AuthResponseDto
+            return new LoginResponseDto
             {
                 FullName = user.FullName,
                 Email = user.Email,
@@ -52,11 +52,17 @@ namespace FlowDesk.Application.Services
             };
         }
 
-        public async Task<AuthResponseDto> RefreshTokenAsync(RefreshTokenDto Dto)
+        public async Task<RefreshTokenResponseDto> RefreshTokenAsync(string? refreshToken)
         {
             _logger.LogInformation("Starting {Operation}", nameof(RefreshTokenAsync));
 
-            var token = await _refreshTokenService.GetToken(Dto.RefreshToken!);
+            if (string.IsNullOrEmpty(refreshToken))
+            {
+                _logger.LogWarning("Refresh token not found");
+                throw new UnauthorizedAccessException("Invalid refresh token");
+            }
+
+            var token = await _refreshTokenService.GetToken(refreshToken!);
 
             if (token == null)
             {
@@ -85,12 +91,24 @@ namespace FlowDesk.Application.Services
 
             _logger.LogInformation("Refresh token rotated for UserId {UserId}", user.UserId);
 
-            return new AuthResponseDto
+            return new RefreshTokenResponseDto
             {
-                FullName = user.FullName,
                 AccessToken = newAccessToken,
                 RefreshToken = newRefreshToken
             };
+        }
+
+        public async Task LogoutAsync(string? refreshToken)
+        {
+            if (string.IsNullOrEmpty(refreshToken)) return;
+
+            var token = await _refreshTokenService.GetToken(refreshToken);
+
+            if (token == null || token.IsRevoked) return;
+
+            token.IsRevoked = true;
+            token.RevokedAt = DateTime.UtcNow;
+            await _refreshTokenService.Update(token);
         }
     }
 }
