@@ -17,7 +17,6 @@
   <ItemGroup>
     <ProjectReference Include="..\FlowDesk.Application\FlowDesk.Application.csproj" />
     <ProjectReference Include="..\FlowDesk.Domain\FlowDesk.Domain.csproj" />
-    <ProjectReference Include="..\FlowDesk.Infrastructure\FlowDesk.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>

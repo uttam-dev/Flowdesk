@@ -1,13 +1,8 @@
-﻿using Azure.Core;
-using DocumentFormat.OpenXml.Spreadsheet;
-using FlowDesk.Application.Features.Users.Queries;
+﻿using FlowDesk.Application.Features.Users.Queries;
 using FlowDesk.Domain.DTOs;
-using FlowDesk.Domain.Entities;
 using FlowDesk.Domain.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
 using System.Security.Claims;
