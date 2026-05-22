@@ -176,7 +176,7 @@ export async function fetchUserRolesApi() {
 export async function fetchUserManagersApi() {
   const { data } = await apiClient.get(`${BASE}/managers`);
   const root = data?.data !== undefined ? data.data : data;
-  let list = [];
+  let list;
   if (Array.isArray(root)) {
     list = root;
   } else {
@@ -235,4 +235,18 @@ export async function activateUserApi(id) {
 export async function deactivateUserApi(id) {
   const { data } = await apiClient.patch(`${BASE}/${id}/deactive`);
   return mapUserRow(data?.data ?? data) ?? { userId: id, isActive: false };
+}
+
+/** @param {File} file */
+export async function bulkUploadUsersApi(file) {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const { data } = await apiClient.post(`${BASE}/bulk-upload`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+
+  return data;
 }
