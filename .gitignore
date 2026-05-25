@@ -53,7 +53,7 @@ Thumbs.db
 .vscode/
 */.vscode/
 .idea/
-
+*.vs
 ############################
 
 # Test Results

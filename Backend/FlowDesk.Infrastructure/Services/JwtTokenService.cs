@@ -1,4 +1,4 @@
-﻿using FlowDesk.Domain.Entities;
+using FlowDesk.Domain.Entities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -18,7 +18,8 @@ namespace FlowDesk.Infrastructure.Services
                 new(ClaimTypes.NameIdentifier, user.UserId.ToString()),
                 new(ClaimTypes.Email, user.Email),
                 new(ClaimTypes.Name, user.FullName),
-                new(ClaimTypes.Role, user.Role.RoleName)
+                new(ClaimTypes.Role, user.Role.RoleName),
+                new("RoleId", user.RoleId.ToString())
             };
 
             var key = new SymmetricSecurityKey(

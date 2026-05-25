@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using FlowDesk.Application.Common.Interfaces;
 using FlowDesk.Application.Features.Requests.DTOs;
 using FlowDesk.Application.Features.Users.DTOs;
 using FlowDesk.Application.Services;
@@ -19,6 +20,8 @@ namespace FlowDesk.Application.Features.Requests.Commands
       IUserRepository userRepository,
       IRequestHistoryRepository requestHistoryRepository,
       IMapper mapper,
+      IRealtimeService _realtime,
+      IRequestsService requestService,
       ILogger<CreateRequestCommandHandler> logger)
       : IRequestHandler<CreateRequestCommand, EmployeeRequestResponseDto>
     {
@@ -97,6 +100,13 @@ namespace FlowDesk.Application.Features.Requests.Commands
                 var manager = await userRepository.GetManagerByEmployeeId(request.CurrentUserId);
                 response.ApprovalName = manager?.FullName;
             }
+
+            var Ids = await requestService.GetRespectiveIds(createdReq.RequestId);
+
+            await _realtime.NotifyRequestCreatedAsync(
+                    requestId: Ids!.RequestId,
+                    employeeId: Ids.EmployeeId,
+                    managerId: Ids.ManagerId);
 
             if (logger.IsEnabled(LogLevel.Information))
             {

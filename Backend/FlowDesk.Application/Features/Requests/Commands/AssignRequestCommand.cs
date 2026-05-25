@@ -33,16 +33,35 @@ namespace FlowDesk.Application.Features.Requests.Commands
                 throw new BadRequestException("Invalid request id");
             }
 
-            var isApprovalPending = fetchedRequest.Category?.IsApprovalRequired == true && fetchedRequest.Status == RequestStatusEnum.Open;
+            var IsManager = fetchedRequest?.Employee?.Manager == null;
+            var IsEmployee = fetchedRequest?.Employee?.Manager != null;
 
-            var isNotOpen =
-                fetchedRequest.Status != RequestStatusEnum.Open;
-
-            if (isApprovalPending || isNotOpen)
+            if (IsManager && fetchedRequest?.Status != RequestStatusEnum.Open)
             {
-                logger.LogWarning("Invalid Request with Id {RequestId}", fetchedRequest.RequestId);
-                throw new BadRequestException("Invalid Request.");
+                logger.LogWarning("Request {RequestId} is not in Open state. Current Status: {Status}",
+                    fetchedRequest!.RequestId, fetchedRequest.Status);
+
+                throw new BadRequestException("Invalid request.");
             }
+
+            if (IsEmployee &&
+                fetchedRequest?.Category?.IsApprovalRequired == true &&
+                fetchedRequest.Status != RequestStatusEnum.Approved)
+            {
+                logger.LogWarning("Request {RequestId} required approval. Current Status: {Status}",
+                    fetchedRequest.RequestId, fetchedRequest.Status);
+                throw new BadRequestException("Invalid request.");
+            }
+
+            if (IsEmployee &&
+                fetchedRequest?.Category?.IsApprovalRequired != true &&
+                fetchedRequest!.Status != RequestStatusEnum.Open)
+            {
+                logger.LogWarning("Request {RequestId} is only procced when its open., Current Status: {Status}",
+                    fetchedRequest.RequestId, fetchedRequest.Status);
+                throw new BadRequestException("Invalid request.");
+            }
+
 
             logger.LogInformation("Fetching User with Id {UserId}", request.Dto.AssignToId);
 
