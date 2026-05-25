@@ -40,6 +40,7 @@ import {
   updateRequestStatus,
 } from "../requestSlice.js";
 import { REQUEST_TABS, REQUEST_STATUS, hasRole } from "../requestUtils.js";
+import { useSignalR } from "../useSignalR.js";
 
 export function RequestListPage() {
   const dispatch = useDispatch();
@@ -49,6 +50,10 @@ export function RequestListPage() {
   const currentUserId = authUser?.id ?? null;
   const isManager = hasRole(roles, "Manager");
   const isSupport = hasRole(roles, "Support");
+
+  // Real-time updates: Admin and Manager get live list refreshes via SignalR.
+  // This call is purely additive — zero changes to existing logic below.
+  useSignalR();
 
   const items = useSelector(selectRequestList);
   const loading = useSelector(selectRequestLoading);
@@ -200,10 +205,10 @@ export function RequestListPage() {
     if (requestId) {
       await dispatch(fetchRequestDetail(requestId))
         .unwrap()
-        .catch(() => {});
+        .catch(() => { });
       await dispatch(fetchRequestComments(requestId))
         .unwrap()
-        .catch(() => {});
+        .catch(() => { });
     }
   }
 
@@ -386,7 +391,7 @@ export function RequestListPage() {
 
       <Modal
         open={showEscalateModal}
-        onClose={escalating ? () => {} : closeEscalateModal}
+        onClose={escalating ? () => { } : closeEscalateModal}
         title="Escalate Request"
         closeOnOverlayClick={!escalating}
         closeOnEscape={!escalating}
@@ -405,7 +410,7 @@ export function RequestListPage() {
               variant="secondary"
               loading={escalating}
               disabled={escalating}
-              className="border-orange-300 bg-orange-600 text-white hover:bg-orange-700"
+              className="border-orange-300 bg-orange-600 text-orange-700 hover:text-white hover:bg-orange-700"
               onClick={handleEscalate}
             >
               {escalating ? "Escalating..." : "Confirm Escalate"}
@@ -424,7 +429,7 @@ export function RequestListPage() {
           ) : null}
           <p className="text-sm text-gray-700">
             Request:{" "}
-            {selectedRequest?.requestNumber || selectedRequest?.requestId} —{" "}
+            {selectedRequest?.requestNumber || selectedRequest?.requestId} -{" "}
             {selectedRequest?.title}
           </p>
           <p className="rounded-lg border border-orange-200 bg-orange-50 px-3 py-2 text-sm text-orange-800">

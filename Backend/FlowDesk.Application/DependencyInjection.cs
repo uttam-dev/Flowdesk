@@ -1,7 +1,10 @@
-﻿using AutoMapper;
+using AutoMapper;
+using FlowDesk.Application.Behaviors;
 using FlowDesk.Application.Common.Mappings;
+using FlowDesk.Application.Features.Requests.Commands;
 using FlowDesk.Application.Services;
 using FlowDesk.Domain.Interfaces;
+using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -21,6 +24,17 @@ namespace FlowDesk.Application
             {
                 cfg.RegisterServicesFromAssembly(assembly);
             });
+
+            // ── Pipeline behaviors: fire SignalR events AFTER each handler ────────
+            // These run post-execution and never mutate handler logic or results.
+            services.AddScoped<IPipelineBehavior<ApproveRequestCommand, Unit>,
+                ApproveRequestNotificationBehavior>();
+            services.AddScoped<IPipelineBehavior<RejectRequestCommand, Unit>,
+                RejectRequestNotificationBehavior>();
+            services.AddScoped<IPipelineBehavior<UpdateRequestStatusCommand, Unit>,
+                UpdateRequestStatusNotificationBehavior>();
+            services.AddScoped<IPipelineBehavior<AssignRequestCommand, Unit>,
+                AssignRequestNotificationBehavior>();
 
             // Auto mapper
             services.AddSingleton<IMapper>(sp =>

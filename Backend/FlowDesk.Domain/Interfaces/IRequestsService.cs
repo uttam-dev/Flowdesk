@@ -6,5 +6,6 @@ namespace FlowDesk.Domain.Interfaces
     public interface IRequestsService
     {
         Task<List<MasterRemarks>> GetRequestRemarksAsync(FilterRequestRemarksQueryDto dto);
+        Task<RequestRespectiveIdResponseDto?> GetRespectiveIds(int requestId);
     }
 }

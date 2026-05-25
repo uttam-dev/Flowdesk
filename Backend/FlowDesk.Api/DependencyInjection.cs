@@ -1,9 +1,10 @@
-﻿using FlowDesk.Application;
+﻿using FlowDesk.Api.Services.Realtime;
+using FlowDesk.Application;
+using FlowDesk.Application.Common.Interfaces;
 using FlowDesk.Application.Common.Validators;
 using FlowDesk.Domain;
 using FlowDesk.Domain.DTOs;
 using FlowDesk.Domain.Enums;
-using FlowDesk.Domain.Utils;
 using FlowDesk.Infrastructure;
 using FluentValidation;
 using FluentValidation.AspNetCore;
@@ -89,7 +90,7 @@ namespace FlowDesk.Api
                     },
                     OnMessageReceived = context =>
                     {
-                        string token = null;
+                        string token = null!;
 
                         // 1️ Check Authorization header first (mobile apps, Postman, external APIs)
                         var authHeader = context.Request.Headers["Authorization"].ToString();
@@ -135,6 +136,8 @@ namespace FlowDesk.Api
                 });
             });
 
+            services.AddSignalR();
+            services.AddScoped<IRealtimeService, SignalRService>();
             return services;
         }
     }
