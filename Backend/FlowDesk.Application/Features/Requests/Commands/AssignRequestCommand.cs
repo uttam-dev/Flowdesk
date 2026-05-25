@@ -77,7 +77,7 @@ namespace FlowDesk.Application.Features.Requests.Commands
 
             await requestHistoryRepository.AddAsync(new Domain.Entities.RequestHistory
             {
-                RequestId = fetchedRequest.RequestId,
+                RequestId = fetchedRequest!.RequestId,
                 ChangedById = request.CurrentUserId,
                 OldStatus = fetchedRequest.Status,
                 NewStatus = Domain.Enums.RequestStatusEnum.Assigned,
