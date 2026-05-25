@@ -15,5 +15,18 @@ namespace FlowDesk.Infrastructure.Services
         {
             return await _context.MasterRemarks.Where(m => (int)m.ActionType == dto.ActionType).ToListAsync();
         }
+
+        public async Task<RequestRespectiveIdResponseDto?> GetRespectiveIds(int requestId)
+        {
+            return await _context.Requests
+                .Where(r => r.RequestId == requestId)
+                .Select(r => new RequestRespectiveIdResponseDto
+                {
+                    RequestId = r.RequestId,
+                    EmployeeId = r.EmployeeId,
+                    ManagerId = r.Employee != null ? r.Employee.ManagerId : null
+                })
+                .FirstOrDefaultAsync();
+        }
     }
 }

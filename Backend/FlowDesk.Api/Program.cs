@@ -1,4 +1,5 @@
 using FlowDesk.Api;
+using FlowDesk.Api.Hubs;
 using FlowDesk.Api.Middleware;
 using FlowDesk.Domain.DTOs;
 using FlowDesk.Infrastructure.Data;
@@ -78,6 +79,8 @@ if (app.Environment.IsDevelopment())
         options.Title = "FlowDesk API";
     });
 }
+
+app.MapHub<RequestHub>("/hubs/request");
 
 app.UseMiddleware<GlobalExceptionMiddleware>();
 

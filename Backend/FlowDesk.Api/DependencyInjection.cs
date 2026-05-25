@@ -1,4 +1,6 @@
-﻿using FlowDesk.Application;
+﻿using FlowDesk.Api.Services.Realtime;
+using FlowDesk.Application;
+using FlowDesk.Application.Common.Interfaces;
 using FlowDesk.Application.Common.Validators;
 using FlowDesk.Domain;
 using FlowDesk.Domain.DTOs;
@@ -134,6 +136,8 @@ namespace FlowDesk.Api
                 });
             });
 
+            services.AddSignalR();
+            services.AddScoped<IRealtimeService, SignalRService>();
             return services;
         }
     }
