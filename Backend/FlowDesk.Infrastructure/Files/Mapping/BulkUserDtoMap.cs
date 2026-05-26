@@ -1,16 +1,21 @@
 ﻿using CsvHelper.Configuration;
 using FlowDesk.Application.Features.Users.DTOs;
 
-public class BulkUserDtoMap : ClassMap<BulkUserDto>
+namespace FlowDesk.Infrastructure.Files.Mapping
 {
-    public BulkUserDtoMap()
+    public class BulkUserDtoMap : ClassMap<BulkUserDto>
     {
-        Map(m => m.FullName).Name("FullName");
-        Map(m => m.Email).Name("Email");
-        Map(m => m.RoleId).Name("RoleId");
-        Map(m => m.ManagerId).Name("ManagerId");
-        Map(m => m.IsActive).Name("IsActive");
+        public BulkUserDtoMap()
+        {
+            Map(m => m.FullName).Name("FullName");
+            Map(m => m.Email).Name("Email");
 
-        Map(m => m.RowNumber).Ignore();
+            Map(m => m.RoleName).Name("RoleName");
+            Map(m => m.ManagerEmail).Name("ManagerEmail");
+
+            Map(m => m.IsActive).Name("IsActive").Optional();
+
+            Map(m => m.RowNumber).Ignore();
+        }
     }
 }

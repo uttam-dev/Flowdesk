@@ -143,5 +143,9 @@ namespace FlowDesk.Infrastructure.Repositories
             await _context.BulkInsertAsync(users);
         }
 
+        public async Task<List<User>> GetUsersByEmailsAsync(List<string> emails)
+        {
+            return await _context.Users.Where(u => emails.Contains(u.Email)).ToListAsync();
+        }
     }
 }
