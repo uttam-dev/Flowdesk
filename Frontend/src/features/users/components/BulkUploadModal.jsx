@@ -56,18 +56,19 @@ function pickValue(row, candidates) {
 
 function mapImportRow(row, index) {
   return {
-    rowNumber: index + 2,
+    rowNumber: pickValue(row, ["rownumber"]) || (index + 2),
     fullName: pickValue(row, ["fullname", "name"]),
     email: pickValue(row, ["email", "emailaddress"]),
-    roleId: pickValue(row, ["roleid", "role"]),
-    active: pickValue(row, ["active", "isactive"]),
+    roleName: pickValue(row, ["rolename", "role"]),
+    managerEmail: pickValue(row, ["manageremail"]),
+    isActive: pickValue(row, ["isactive", "active"]),
   };
 }
 
 function hasMissingRequired(row) {
   return !String(row.fullName ?? "").trim()
     || !String(row.email ?? "").trim()
-    || !String(row.roleId ?? "").trim();
+    || !String(row.roleName ?? "").trim();
 }
 
 function displayValue(value) {
@@ -240,6 +241,20 @@ export function BulkUploadModal({ open, onClose, onCompleted }) {
     successData?.total > 0
       ? Math.min(100, (successData.successCount / successData.total) * 100)
       : 0;
+
+  function downloadTemplate(e) {
+    e.stopPropagation();
+    const content = "RowNumber,FullName,Email,RoleName,ManagerEmail,IsActive\n1,John Doe,john.doe@company.com,Admin,,true\n2,Jane Smith,jane.smith@company.com,Employee,john.doe@company.com,true";
+    const blob = new Blob([content], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "bulk_users_template.csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
 
   function reset() {
     setState(initialState);
@@ -434,6 +449,16 @@ export function BulkUploadModal({ open, onClose, onCompleted }) {
               Drop a CSV or Excel file here
             </p>
             <p className="mt-1 text-xs text-gray-500">Maximum file size: 5 MB</p>
+            <div className="mt-2">
+              <button
+                type="button"
+                className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700 hover:text-emerald-800 hover:underline"
+                onClick={downloadTemplate}
+              >
+                <i className="ti-download" aria-hidden="true" />
+                Download CSV template
+              </button>
+            </div>
             <Button
               type="button"
               variant="secondary"
@@ -476,27 +501,37 @@ export function BulkUploadModal({ open, onClose, onCompleted }) {
                       <Th>Row</Th>
                       <Th>Full name</Th>
                       <Th>Email</Th>
-                      <Th>Role ID</Th>
+                      <Th>Role</Th>
+                      <Th>Manager email</Th>
                       <Th>Active</Th>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {state.previewRows.length ? (
-                      state.previewRows.map((row) => (
-                        <TableRow
-                          key={row.rowNumber}
-                          className={hasMissingRequired(row) ? "bg-red-50" : "bg-white"}
-                        >
-                          <Td>{row.rowNumber}</Td>
-                          <Td>{displayValue(row.fullName)}</Td>
-                          <Td>{displayValue(row.email)}</Td>
-                          <Td>{displayValue(row.roleId)}</Td>
-                          <Td>{displayValue(row.active)}</Td>
-                        </TableRow>
-                      ))
+                      state.previewRows.map((row) => {
+                        let isActiveDisplay = "Yes";
+                        const activeStr = String(row.isActive ?? "").trim().toLowerCase();
+                        if (activeStr === "false" || activeStr === "no" || activeStr === "0") {
+                          isActiveDisplay = "No";
+                        }
+
+                        return (
+                          <TableRow
+                            key={row.rowNumber}
+                            className={hasMissingRequired(row) ? "bg-red-50" : "bg-white"}
+                          >
+                            <Td>{row.rowNumber}</Td>
+                            <Td>{displayValue(row.fullName)}</Td>
+                            <Td>{displayValue(row.email)}</Td>
+                            <Td>{displayValue(row.roleName)}</Td>
+                            <Td>{displayValue(row.managerEmail)}</Td>
+                            <Td>{isActiveDisplay}</Td>
+                          </TableRow>
+                        );
+                      })
                     ) : (
                       <TableRow>
-                        <Td colSpan={5} className="py-6 text-center text-gray-500">
+                        <Td colSpan={6} className="py-6 text-center text-gray-500">
                           No preview rows found.
                         </Td>
                       </TableRow>
