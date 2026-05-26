@@ -1,7 +1,7 @@
-﻿using FlowDesk.Domain.Interfaces;
+﻿using FlowDesk.Application.Common.Exceptions;
 using FlowDesk.Domain.DTOs;
+using FlowDesk.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
-using FlowDesk.Application.Common.Exceptions;
 
 namespace FlowDesk.Application.Services
 {
@@ -109,6 +109,47 @@ namespace FlowDesk.Application.Services
             token.IsRevoked = true;
             token.RevokedAt = DateTime.UtcNow;
             await _refreshTokenService.Update(token);
+        }
+
+        public async Task ResetSelfPassword(int userId, UserResetSelfPasswordDto Dto)
+        {
+            // logging
+            _logger.LogInformation("Starting {Operation} with {@Request}", nameof(ResetSelfPassword), userId);
+
+            // logging
+            _logger.LogInformation("Fetching {Entity} with Id {EntityId}", "User", userId);
+
+            var user = await _userRepo.GetByIdAsync(userId);
+
+            if (user == null)
+            {
+                // logging
+                _logger.LogWarning("{Entity} not found with Id {EntityId} in {Operation}", "User", userId, nameof(ResetSelfPassword));
+                throw new Common.Exceptions.NotFoundException("User not found.");
+            }
+
+            if (PasswordService.VerifyPassword(Dto.CurrentPassword, user.PasswordHash) == false)
+            {
+                // logging
+                _logger.LogWarning("Current password verification failed for {Entity} with Id {EntityId} in {Operation}", "User", userId, nameof(ResetSelfPassword));
+                throw new BadRequestException("Current password is incorrect.");
+            }
+
+            // logging
+            _logger.LogInformation("Updating password for {Entity} with Id {EntityId}", "User", userId);
+
+            user.PasswordHash = PasswordService.HashPassword(Dto.NewPassword);
+
+            user.UpdatedOn = DateTime.UtcNow;
+
+            // logging
+            _logger.LogInformation("Saving updated {Entity} with Id {EntityId}", "User", userId);
+
+            await _userRepo.Update(user);
+
+            // logging
+            _logger.LogInformation("Successfully completed {Operation} for {Entity} with Id {EntityId}", nameof(ResetSelfPassword), "User", userId);
+
         }
     }
 }

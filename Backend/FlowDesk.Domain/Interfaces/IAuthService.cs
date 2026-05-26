@@ -7,5 +7,6 @@ namespace FlowDesk.Domain.Interfaces
         Task<LoginResponseDto> LoginAsync(LoginRequestDto request);
         Task<RefreshTokenResponseDto> RefreshTokenAsync(string? refreshToken);
         Task LogoutAsync(string? refreshToken);
+        Task ResetSelfPassword(int userId, UserResetSelfPasswordDto Dto);
     }
 }
