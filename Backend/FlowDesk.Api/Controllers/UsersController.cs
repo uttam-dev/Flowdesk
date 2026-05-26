@@ -110,7 +110,7 @@ namespace FlowDesk.Api.Controllers
 
         [Authorize(policy: "RequireAdminRole")]
         //Reset user password
-        [HttpPatch("{id}/reset-password")]
+        [HttpPost("{id}/reset-password")]
         public async Task<IActionResult> ResetPassword(int id, [FromBody] UserResetPasswordDto resetPasswordDto)
         {
             await _mediator.Send(new ResetPasswordCommand(id, resetPasswordDto));
@@ -149,7 +149,7 @@ namespace FlowDesk.Api.Controllers
 
         [Authorize("RequireAdminRole")]
         //active user
-        [HttpPatch("{id}/deactive")]
+        [HttpPatch("{id}/deactive")]    
         public async Task<IActionResult> DeactiveUser(int id)
         {
             var currentUserId = Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);

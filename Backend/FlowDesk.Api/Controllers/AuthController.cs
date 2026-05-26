@@ -1,4 +1,6 @@
-﻿using FlowDesk.Application.Features.Users.Queries;
+﻿using FlowDesk.Application.Features.Users.Commands;
+using FlowDesk.Application.Features.Users.DTOs;
+using FlowDesk.Application.Features.Users.Queries;
 using FlowDesk.Domain.DTOs;
 using FlowDesk.Domain.Interfaces;
 using MediatR;
@@ -116,7 +118,19 @@ namespace FlowDesk.Api.Controllers
                 //Path = "/auth/refresh"  
             });
 
-            return Ok(new ApiResponseDto{ Message = "Logged out successfully" });
+            return Ok(new ApiResponseDto { Message = "Logged out successfully" });
+        }
+
+        [Authorize]
+        //Reset user password
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] UserResetSelfPasswordDto resetPasswordDto)
+        {
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+            await _authService.ResetSelfPassword(userId, resetPasswordDto);
+            return Ok(new ApiResponseDto() { Message = "Password reset successfully." });
+
         }
     }
 }

@@ -1,7 +1,11 @@
+import { useState } from "react";
+import ReactDOM from "react-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { NavLink } from "react-router-dom";
 import { FlowDeskLogo } from "../brand/FlowDeskLogo.jsx";
 import { Button } from "../ui/Button.jsx";
+import { Modal } from "../ui/Modal.jsx";
+import { apiClient } from "../../services/apiClient.js";
 import {
   logout,
   selectAuthUser,
@@ -34,6 +38,84 @@ export function Sidebar({ collapsed, onNavigate, mobile }) {
   const showRequests = canAccessRequests(roles);
   const hideText = collapsed && !mobile;
 
+  const [showModal, setShowModal] = useState(false)
+  const [currentPassword, setCurrentPassword] = useState("")
+  const [newPassword, setNewPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
+  const [errors, setErrors] = useState({})
+  const [loading, setLoading] = useState(false)
+  const [successMsg, setSuccessMsg] = useState("")
+
+  const validate = () => {
+    const e = {}
+
+    if (!currentPassword.trim())
+      e.currentPassword = "Current password is required"
+
+    if (!newPassword)
+      e.newPassword = "New password is required"
+    else if (newPassword.length < 8)
+      e.newPassword = "Minimum 8 characters required"
+    else if (!/[A-Z]/.test(newPassword))
+      e.newPassword = "Must contain at least one uppercase letter"
+    else if (!/[a-z]/.test(newPassword))
+      e.newPassword = "Must contain at least one lowercase letter"
+    else if (!/[0-9]/.test(newPassword))
+      e.newPassword = "Must contain at least one number"
+    else if (!/[^A-Za-z0-9]/.test(newPassword))
+      e.newPassword = "Must contain at least one special character"
+
+    if (!confirmPassword)
+      e.confirmPassword = "Please confirm your new password"
+    else if (newPassword !== confirmPassword)
+      e.confirmPassword = "Passwords do not match"
+
+    if (currentPassword && newPassword &&
+      currentPassword === newPassword)
+      e.newPassword =
+        "New password must be different from current"
+
+    setErrors(e)
+    return Object.keys(e).length === 0
+  }
+
+  const handleReset = async () => {
+    if (!validate()) return
+
+    try {
+      setLoading(true)
+      setSuccessMsg("")
+
+      await apiClient.post("/auth/reset-password", {
+        currentPassword,
+        newPassword
+      })
+
+      setSuccessMsg("Password updated successfully")
+      setTimeout(() => {
+        setShowModal(false)
+        resetState()
+      }, 1500)
+
+    } catch (error) {
+      const msg = error?.response?.data?.message
+        || "Failed to update password. Please try again."
+      setErrors({ api: msg })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const resetState = () => {
+    setCurrentPassword("")
+    setNewPassword("")
+    setConfirmPassword("")
+    setErrors({})
+    setSuccessMsg("")
+    setLoading(false)
+    document.body.style.overflow = ""
+  }
+
   return (
     <div className="flex h-full flex-col border-r border-gray-200 bg-white">
       <div className="border-b border-gray-100 px-3 py-4">
@@ -59,7 +141,7 @@ export function Sidebar({ collapsed, onNavigate, mobile }) {
       </div>
 
       <nav
-        className="flex-1 space-y-1 overflow-y-auto p-2"
+        className="flex-1 space-y-1 overflow-y-auto overflow-x-hidden p-2"
         aria-label="Sidebar"
       >
         <NavLink to="/" end onClick={onNavigate} className={navClass}>
@@ -166,10 +248,20 @@ export function Sidebar({ collapsed, onNavigate, mobile }) {
         >
           {user?.name || user?.email || "User"}
         </p>
+        <button
+          type="button"
+          className={`font-light text-xs text-gray-400 hover:underline cursor-pointer bg-transparent border-none p-0 block px-2 text-left w-full mt-0.5 ${hideText ? "hidden" : ""}`}
+          onClick={() => {
+            setShowModal(true);
+            document.body.style.overflow = "hidden";
+          }}
+        >
+          reset password
+        </button>
         <Button
           type="button"
           variant="secondary"
-          className="mt-2 inline-flex w-full items-center justify-center gap-2"
+          className="mt-4 inline-flex w-full items-center justify-center gap-2"
           onClick={() => dispatch(logout())}
         >
           <svg
@@ -189,6 +281,104 @@ export function Sidebar({ collapsed, onNavigate, mobile }) {
           <span className={hideText ? "sr-only" : ""}>Sign out</span>
         </Button>
       </div>
+
+      {showModal && ReactDOM.createPortal(
+        <Modal
+          open={showModal}
+          onClose={() => {
+            if (loading) return;
+            setShowModal(false);
+            resetState();
+          }}
+          title="Reset Password"
+          footer={
+            <>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => {
+                  setShowModal(false);
+                  resetState();
+                }}
+                disabled={loading}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                variant="primary"
+                onClick={handleReset}
+                disabled={loading}
+              >
+                {loading ? "Updating..." : "Update Password"}
+              </Button>
+            </>
+          }
+        >
+          <div className="space-y-4 py-2">
+            {successMsg && (
+              <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800" role="alert">
+                {successMsg}
+              </div>
+            )}
+
+            {errors.api && (
+              <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">
+                {errors.api}
+              </div>
+            )}
+
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">
+                Current password
+              </label>
+              <input
+                type="password"
+                className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm placeholder-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                disabled={loading}
+              />
+              {errors.currentPassword && (
+                <p className="mt-1 text-xs text-red-600">{errors.currentPassword}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">
+                New password
+              </label>
+              <input
+                type="password"
+                className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm placeholder-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                disabled={loading}
+              />
+              {errors.newPassword && (
+                <p className="mt-1 text-xs text-red-600">{errors.newPassword}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">
+                Confirm password
+              </label>
+              <input
+                type="password"
+                className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm placeholder-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                disabled={loading}
+              />
+              {errors.confirmPassword && (
+                <p className="mt-1 text-xs text-red-600">{errors.confirmPassword}</p>
+              )}
+            </div>
+          </div>
+        </Modal>,
+        document.body
+      )}
     </div>
   );
 }
