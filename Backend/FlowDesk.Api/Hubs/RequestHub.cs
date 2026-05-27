@@ -1,3 +1,4 @@
+using FlowDesk.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
@@ -12,7 +13,6 @@ public class RequestHub(ILogger<RequestHub> logger) : Hub
     {
         var userId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         var role = Context.User?.FindFirst(ClaimTypes.Role)?.Value;
-        var roleIdStr = Context.User?.FindFirst("RoleId")?.Value;
 
         if (!string.IsNullOrEmpty(userId))
             await Groups.AddToGroupAsync(Context.ConnectionId, $"user-{userId}");
@@ -20,15 +20,9 @@ public class RequestHub(ILogger<RequestHub> logger) : Hub
         if (!string.IsNullOrEmpty(role))
             await Groups.AddToGroupAsync(Context.ConnectionId, $"role-{role}");
 
-        // Add Support users to "Support" group (RoleId == 4)
-        if (int.TryParse(roleIdStr, out int roleId) && roleId == 4)
-        {
-            await Groups.AddToGroupAsync(Context.ConnectionId, "Support");
-        }
-
         logger.LogInformation(
-            "SignalR connected: ConnectionId={ConnectionId} UserId={UserId} Role={Role} RoleId={RoleId}",
-            Context.ConnectionId, userId ?? "anonymous", role ?? "none", roleIdStr ?? "none");
+            "SignalR connected: ConnectionId={ConnectionId} UserId={UserId} Role={Role}",
+            Context.ConnectionId, userId ?? "anonymous", role ?? "none");
 
         await base.OnConnectedAsync();
     }

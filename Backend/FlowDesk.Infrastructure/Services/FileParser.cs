@@ -51,9 +51,9 @@ namespace FlowDesk.Infrastructure.Services
                     dto.RowNumber = rowNumber++;
 
                     // Normalize safely
-                    dto.FullName = SafeGet(dto.FullName);
-                    dto.Email = SafeGet(dto.Email)?.ToLower();
-                    dto.RoleName = SafeGet(dto.RoleName);
+                    dto.FullName = SafeGet(dto.FullName)!;
+                    dto.Email = SafeGet(dto.Email)?.ToLower()!;
+                    dto.RoleName = SafeGet(dto.RoleName)!;
                     dto.ManagerEmail = SafeGet(dto.ManagerEmail)?.ToLower();
 
                     // Handle bool safely (important for CSV corruption)
@@ -95,10 +95,10 @@ namespace FlowDesk.Infrastructure.Services
                     {
                         RowNumber = rowNum++,
 
-                        FullName = SafeGet(row.Cell(1).GetString()),
-                        Email = SafeGet(row.Cell(2).GetString())?.ToLower(),
+                        FullName = SafeGet(row.Cell(1).GetString())!,
+                        Email = SafeGet(row.Cell(2).GetString())?.ToLower()!,
 
-                        RoleName = SafeGet(row.Cell(3).GetString()),
+                        RoleName = SafeGet(row.Cell(3).GetString())!,
                         ManagerEmail = SafeGet(row.Cell(4).GetString())?.ToLower(),
 
                         // Safe bool handling

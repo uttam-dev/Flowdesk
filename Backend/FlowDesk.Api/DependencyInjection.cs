@@ -136,6 +136,7 @@ namespace FlowDesk.Api
                 });
             });
 
+            //SingleR 
             services.AddSignalR();
             services.AddScoped<IRealtimeService, SignalRService>();
             return services;

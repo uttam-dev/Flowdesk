@@ -41,10 +41,10 @@ namespace FlowDesk.Application.Features.Users.Commands
             // ---------------- NORMALIZE ----------------
             var users = request.Users.Select(x =>
             {
-                x.FullName = x.FullName?.Trim();
-                x.Email = x.Email?.Trim().ToLower();
+                x.FullName = x.FullName!.Trim();
+                x.Email = x.Email!.Trim().ToLower();
                 x.ManagerEmail = x.ManagerEmail?.Trim().ToLower();
-                x.RoleName = x.RoleName?.Trim();
+                x.RoleName = x.RoleName!.Trim();
                 return x;
             }).ToList();
 
@@ -171,7 +171,7 @@ namespace FlowDesk.Application.Features.Users.Commands
                             .FirstOrDefault(x => x.Email == item.ManagerEmail);
 
                         if (manager != null)
-                            managerId = manager.UserId; // will be 0 until saved → depends on your repo
+                            managerId = manager.UserId; 
                     }
                     else
                     {
