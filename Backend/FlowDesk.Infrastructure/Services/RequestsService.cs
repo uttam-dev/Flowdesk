@@ -1,4 +1,4 @@
-﻿using FlowDesk.Domain.DTOs;
+using FlowDesk.Domain.DTOs;
 using FlowDesk.Domain.Entities;
 using FlowDesk.Domain.Interfaces;
 using FlowDesk.Infrastructure.Data;
@@ -22,9 +22,10 @@ namespace FlowDesk.Infrastructure.Services
                 .Where(r => r.RequestId == requestId)
                 .Select(r => new RequestRespectiveIdResponseDto
                 {
-                    RequestId = r.RequestId,
+                    RequestId  = r.RequestId,
                     EmployeeId = r.EmployeeId,
-                    ManagerId = r.Employee != null ? r.Employee.ManagerId : null
+                    ManagerId  = r.Employee != null ? r.Employee.ManagerId : null,
+                    AssignedToId = r.AssignedToId
                 })
                 .FirstOrDefaultAsync();
         }
