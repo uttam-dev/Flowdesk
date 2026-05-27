@@ -1,10 +1,9 @@
-﻿using FlowDesk.Infrastructure.Data;
-using FlowDesk.Domain.Interfaces;
+﻿using FlowDesk.Domain.DTOs;
 using FlowDesk.Domain.Entities;
-using Microsoft.EntityFrameworkCore;
-using FlowDesk.Application.Features.Categories.DTOs;
-using FlowDesk.Domain.DTOs;
 using FlowDesk.Domain.Enums;
+using FlowDesk.Domain.Interfaces;
+using FlowDesk.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace FlowDesk.Infrastructure.Repositories
 {
@@ -22,7 +21,7 @@ namespace FlowDesk.Infrastructure.Repositories
             return await _context.Categories.AnyAsync(c => c.CategoryId == categoryId);
         }
 
-        public async Task<(int, IReadOnlyList<Category>)> GetAllAsync(FilterCategoryDataQueryDto filter)
+        public async Task<(int, IReadOnlyList<Domain.Entities.Category>)> GetAllAsync(FilterCategoryDataQueryDto filter)
         {
             var query = _context.Categories
                 .AsNoTracking()
@@ -53,16 +52,19 @@ namespace FlowDesk.Infrastructure.Repositories
             return (totalPages, categories);
         }
 
-        public async Task<Category?> GetByIdAsync(int categoryId)
+        public async Task<Domain.Entities.Category?> GetByIdAsync(int categoryId)
         {
             return await _context.Categories.FirstOrDefaultAsync(c => c.CategoryId == categoryId);
         }
-        public async Task<Category?> GetByNameAsync(string categoryName)
+        public async Task<Domain.Entities.Category?> GetByNameAsync(string categoryName)
         {
-            return await _context.Categories.FirstOrDefaultAsync(c => c.CategoryName == categoryName);
+            var normalizedRequestedName = categoryName.Replace(" ", "").ToLower();
+            return await _context.Categories
+                .FirstOrDefaultAsync(x =>
+                    x.CategoryName.Replace(" ", "").ToLower() == normalizedRequestedName);
         }
 
-        public async Task HardDelete(Category category)
+        public async Task HardDelete(Domain.Entities.Category category)
         {
             _context.Categories.Remove(category);
             await _context.SaveChangesAsync();
@@ -73,14 +75,14 @@ namespace FlowDesk.Infrastructure.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task ToggleActive(Category category)
+        public async Task ToggleActive(Domain.Entities.Category category)
         {
             category.IsActive = !category.IsActive;
             _context.Categories.Update(category);
             await _context.SaveChangesAsync();
         }
 
-        public async Task<Category> Update(Category category)
+        public async Task<Domain.Entities.Category> Update(Domain.Entities.Category category)
         {
             _context.Categories.Update(category);
             await _context.SaveChangesAsync();
