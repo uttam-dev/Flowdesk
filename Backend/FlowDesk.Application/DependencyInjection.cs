@@ -2,6 +2,7 @@ using AutoMapper;
 using FlowDesk.Application.Behaviors;
 using FlowDesk.Application.Common.Mappings;
 using FlowDesk.Application.Features.Requests.Commands;
+using FlowDesk.Application.Features.Requests.DTOs;
 using FlowDesk.Application.Services;
 using FlowDesk.Domain.Interfaces;
 using MediatR;
@@ -35,6 +36,8 @@ namespace FlowDesk.Application
                 UpdateRequestStatusNotificationBehavior>();
             services.AddScoped<IPipelineBehavior<AssignRequestCommand, Unit>,
                 AssignRequestNotificationBehavior>();
+            services.AddScoped<IPipelineBehavior<EscalateRequestCommand, RequestResponseDto>,
+                EscalateRequestNotificationBehavior>();
 
             // Auto mapper
             services.AddSingleton<IMapper>(sp =>
