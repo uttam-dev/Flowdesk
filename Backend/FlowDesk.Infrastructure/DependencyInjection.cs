@@ -1,4 +1,5 @@
-﻿using FlowDesk.Domain.Interfaces;
+﻿using FlowDesk.Application.Features.Chat.Interfaces;
+using FlowDesk.Domain.Interfaces;
 using FlowDesk.Infrastructure.Data;
 using FlowDesk.Infrastructure.Repositories;
 using FlowDesk.Infrastructure.Services;
@@ -30,6 +31,16 @@ namespace FlowDesk.Infrastructure
             services.AddScoped<IRequestsService, RequestsService>();
 
             services.AddScoped<IFileParser, FileParser>();
+
+            services.Configure<GroqSettings>(configuration.GetSection(GroqSettings.SectionName));
+
+            services.AddHttpClient("GroqApi")
+                .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+                {
+                    MaxConnectionsPerServer = 5
+                });
+
+            services.AddScoped<IChatbotService, GroqChatService>();
 
             return services;
         }
