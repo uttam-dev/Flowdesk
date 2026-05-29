@@ -46,7 +46,12 @@ namespace FlowDesk.Infrastructure.Repositories
             }
             else if (role == RoleEnum.Manager.ToString())
             {
-                query = query.Where(r => r.EmployeeId == userId);
+                var teamIds = _context.Users
+                    .Where(u => u.ManagerId == userId)
+                    .Select(u => u.UserId)
+                    .ToList();
+
+                query = query.Where(r => r.EmployeeId == userId || teamIds.Contains(r.EmployeeId));
             }
             else if (role == RoleEnum.Support.ToString())
             {
@@ -146,6 +151,18 @@ namespace FlowDesk.Infrastructure.Repositories
                             .FirstOrDefaultAsync(r => r.RequestId == requestId);
         }
 
+        public async Task<Request?> GetByRequestNumberAsync(string requestNumber)
+        {
+            return await _context.Requests
+                .AsNoTracking()
+                .Include(r => r.Category)
+                .Include(r => r.Employee)
+                .Include(r => r.AssignedUser)
+                .FirstOrDefaultAsync(r =>
+                    r.RequestNumber == requestNumber ||
+                    r.RequestNumber.Contains(requestNumber.Replace("REQ-", "")));
+        }
+
         public Task<List<Request>> GetBreachedRequestsAsync()
         {
             return _context.Requests
@@ -209,6 +226,7 @@ namespace FlowDesk.Infrastructure.Repositories
                     Resolved = g.Count(x => x.Status == RequestStatusEnum.Resolved),
                     Closed = g.Count(x => x.Status == RequestStatusEnum.Closed)
                 })
+                .OrderBy(x => x.Total)
                 .FirstOrDefaultAsync();
 
             return result == null

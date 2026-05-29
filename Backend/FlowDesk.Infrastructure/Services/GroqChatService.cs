@@ -1,6 +1,7 @@
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using FlowDesk.Application.Features.Chat.DTOs;
 using FlowDesk.Application.Features.Chat.Interfaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -13,86 +14,94 @@ namespace FlowDesk.Infrastructure.Services
         private readonly GroqSettings _settings;
         private readonly ILogger<GroqChatService> _logger;
 
-        private static readonly JsonSerializerOptions JsonOptions = new()
+        private static readonly JsonSerializerOptions JsonOpts = new()
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
 
         public GroqChatService(
-            IHttpClientFactory httpClientFactory,
+            HttpClient httpClient,
             IOptions<GroqSettings> settings,
             ILogger<GroqChatService> logger)
         {
-            _httpClient = httpClientFactory.CreateClient("GroqApi");
+            _httpClient = httpClient;
             _settings = settings.Value;
             _logger = logger;
 
             _httpClient.BaseAddress = new Uri(_settings.BaseUrl.TrimEnd('/') + "/");
             _httpClient.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("Bearer", _settings.ApiKey);
+            _httpClient.Timeout = TimeSpan.FromSeconds(_settings.TimeoutSeconds);
         }
 
         public async Task<string> GetResponseAsync(
             string message,
             string systemPrompt,
             string contextData,
+            IReadOnlyList<ConversationMessage> conversationHistory,
+            int maxTokens,
             CancellationToken cancellationToken)
         {
             try
             {
                 var userMessage = string.IsNullOrWhiteSpace(contextData)
                     ? message
-                    : $"User Context:\n{contextData}\n\nUser Question:\n{message}";
+                    : $"Context: {contextData}\n\nQuestion: {message}";
+
+                var messages = new List<object>
+                {
+                    new { role = "system", content = systemPrompt }
+                };
+
+                foreach (var hist in conversationHistory)
+                    messages.Add(new { role = hist.Role, content = hist.Content });
+
+                messages.Add(new { role = "user", content = userMessage });
+
+                var model = maxTokens <= 250 ? _settings.FallbackModel : _settings.Model;
 
                 var requestBody = new
                 {
-                    model = _settings.Model,
-                    messages = new[]
-                    {
-                        new { role = "system", content = systemPrompt },
-                        new { role = "user", content = userMessage }
-                    },
-                    max_tokens = 1024,
-                    temperature = 0.3
+                    model,
+                    messages,
+                    max_tokens = maxTokens,
+                    temperature = _settings.Temperature
                 };
 
                 var jsonContent = new StringContent(
-                    JsonSerializer.Serialize(requestBody, JsonOptions),
+                    JsonSerializer.Serialize(requestBody, JsonOpts),
                     Encoding.UTF8,
                     "application/json");
 
                 using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                cts.CancelAfter(TimeSpan.FromSeconds(30));
+                cts.CancelAfter(TimeSpan.FromSeconds(_settings.TimeoutSeconds));
 
-                _logger.LogInformation("Sending request to Groq API with model {Model}", _settings.Model);
+                _logger.LogInformation("Groq model={Model} tokens={Tokens} history={Count}",
+                    model, maxTokens, conversationHistory.Count);
 
-                var response = await _httpClient.PostAsync(
-                    "openai/v1/chat/completions",
-                    jsonContent,
-                    cts.Token);
-
+                var response = await _httpClient.PostAsync("openai/v1/chat/completions", jsonContent, cts.Token);
                 response.EnsureSuccessStatusCode();
 
                 var responseJson = await response.Content.ReadAsStringAsync(cts.Token);
-                var result = JsonSerializer.Deserialize<GroqResponse>(responseJson, JsonOptions);
+                var result = JsonSerializer.Deserialize<GroqResponse>(responseJson, JsonOpts);
 
-                var reply = result?.Choices?.FirstOrDefault()?.Message?.Content ?? "I'm sorry, I couldn't process that request.";
-                return reply;
+                return result?.Choices?.FirstOrDefault()?.Message?.Content
+                    ?? "Service temporarily unavailable.";
             }
             catch (TaskCanceledException)
             {
-                _logger.LogWarning("Groq API request timed out");
-                return "I'm sorry, the request timed out. Please try again.";
+                _logger.LogWarning("Groq API timed out after {Timeout}s", _settings.TimeoutSeconds);
+                return "Service temporarily unavailable.";
             }
             catch (HttpRequestException ex)
             {
                 _logger.LogError(ex, "Groq API request failed");
-                return "I'm sorry, I'm having trouble connecting to my knowledge base. Please try again later.";
+                return "Service temporarily unavailable. Please try again.";
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected error in GroqChatService");
-                return "An unexpected error occurred. Please try again.";
+                _logger.LogError(ex, "Unexpected Groq error");
+                return "Service temporarily unavailable.";
             }
         }
 
