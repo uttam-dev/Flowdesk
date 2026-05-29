@@ -30,6 +30,13 @@ namespace FlowDesk.Application.Features.Chat.Enums
         SystemSummary,
         RequestSummary,
 
+        // ACTION INTENTS
+        CreateRequest,
+        ApproveRequest,
+        RejectRequest,
+        StartRequest,
+        ResolveRequest,
+
         GeneralQuery
     }
 }

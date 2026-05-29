@@ -1,6 +1,7 @@
 using FlowDesk.Application.Features.Chat.DTOs;
 using FlowDesk.Application.Features.Chat.Enums;
 using FlowDesk.Application.Features.Chat.Interfaces;
+using FlowDesk.Application.Features.Chat.Services;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -15,6 +16,7 @@ namespace FlowDesk.Application.Features.Chat.Commands
         IConversationMemory conversationMemory,
         IRateLimiter rateLimiter,
         IGroundingGuard groundingGuard,
+        ActionExecutorService actionExecutor,
         ILogger<AskChatbotCommandHandler> logger)
         : IRequestHandler<AskChatbotCommand, ChatResponseDto>
     {
@@ -103,6 +105,20 @@ namespace FlowDesk.Application.Features.Chat.Commands
 
             // Step 1: Resolve intent
             var intent = await commandResolver.ResolveAsync(sanitized, request.UserId, request.UserRole, cancellationToken);
+
+            // Step 1.5: If action intent (create/approve/reject/start/resolve) — execute directly
+            var actionIntents = new[]
+            {
+                IntentType.CreateRequest, IntentType.ApproveRequest,
+                IntentType.RejectRequest, IntentType.StartRequest, IntentType.ResolveRequest
+            };
+
+            if (intent.IsResolved && actionIntents.Contains(intent.Intent))
+            {
+                var actionResult = await actionExecutor.ExecuteAsync(intent, request.UserId, request.UserRole, cancellationToken);
+                logger.LogInformation("Action {Intent} executed for UserId={UserId}", intent.Intent, request.UserId);
+                return new ChatResponseDto { Response = actionResult, IsCommandHandled = true };
+            }
 
             // Step 2: If concrete intent, handle via CQRS - no AI call
             if (intent.IsResolved && intent.Intent != IntentType.GeneralQuery)

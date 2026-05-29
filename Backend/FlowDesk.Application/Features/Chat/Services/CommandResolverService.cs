@@ -99,6 +99,62 @@ namespace FlowDesk.Application.Features.Chat.Services
             if (MatchesAny(lower, ["how many", "total", "count", "summary", "overview", "statistics", "stats", "dashboard"]))
                 return Task.FromResult(new IntentResult { Intent = IntentType.RequestSummary, IsResolved = false });
 
+            // ── ACTION INTENTS ──────────────────────────────────────────────────────
+
+            var createMatch = Regex.Match(lower, @"(?:create|raise|new|submit|log|open)\s+(?:a\s+)?request(?:\s+for)?\s+(.+)", RegexOptions.IgnoreCase);
+            if (createMatch.Success)
+            {
+                var rawText = createMatch.Groups[1].Value.Trim();
+                return Task.FromResult(new IntentResult
+                {
+                    Intent = IntentType.CreateRequest,
+                    IsResolved = true,
+                    Parameters = ParseCreateRequest(rawText)
+                });
+            }
+
+            var approveMatch = Regex.Match(message, @"approve\s+(REQ-\d+-\d+)", RegexOptions.IgnoreCase);
+            if (approveMatch.Success)
+                return Task.FromResult(new IntentResult
+                {
+                    Intent = IntentType.ApproveRequest, IsResolved = true,
+                    Parameters = new Dictionary<string, string> { ["reqNumber"] = approveMatch.Groups[1].Value.ToUpper() }
+                });
+
+            var rejectMatch = Regex.Match(message, @"reject\s+(REQ-\d+-\d+)(?:\s+(?:reason|because|reason:)?\s*:?\s*(.+))?", RegexOptions.IgnoreCase);
+            if (rejectMatch.Success)
+                return Task.FromResult(new IntentResult
+                {
+                    Intent = IntentType.RejectRequest, IsResolved = true,
+                    Parameters = new Dictionary<string, string>
+                    {
+                        ["reqNumber"] = rejectMatch.Groups[1].Value.ToUpper(),
+                        ["reason"] = rejectMatch.Groups[2].Value.Trim()
+                    }
+                });
+
+            var startMatch = Regex.Match(message, @"(?:start|begin|pick up)\s+(REQ-\d+-\d+)", RegexOptions.IgnoreCase);
+            if (startMatch.Success)
+                return Task.FromResult(new IntentResult
+                {
+                    Intent = IntentType.StartRequest, IsResolved = true,
+                    Parameters = new Dictionary<string, string> { ["reqNumber"] = startMatch.Groups[1].Value.ToUpper() }
+                });
+
+            var resolveMatch = Regex.Match(message, @"(?:resolve|close|complete|done|fix(?:ed)?)\s+(REQ-\d+-\d+)(?:\s+(?:note|resolution)?:?\s*(.+))?", RegexOptions.IgnoreCase);
+            if (!resolveMatch.Success)
+                resolveMatch = Regex.Match(message, @"mark\s+(REQ-\d+-\d+)\s+(?:as\s+)?(?:resolved|done|complete)", RegexOptions.IgnoreCase);
+            if (resolveMatch.Success)
+                return Task.FromResult(new IntentResult
+                {
+                    Intent = IntentType.ResolveRequest, IsResolved = true,
+                    Parameters = new Dictionary<string, string>
+                    {
+                        ["reqNumber"] = resolveMatch.Groups[1].Value.ToUpper(),
+                        ["note"] = resolveMatch.Groups[2].Value.Trim()
+                    }
+                });
+
             return Task.FromResult(new IntentResult { Intent = IntentType.GeneralQuery, IsResolved = false });
         }
 
@@ -464,6 +520,45 @@ namespace FlowDesk.Application.Features.Chat.Services
                 "- Move status: Assigned to In Progress, then In Progress to Resolved\n" +
                 "- Add comments on assigned requests\n" +
                 "- Cannot approve, reject, assign, or escalate";
+        }
+
+        private static Dictionary<string, string> ParseCreateRequest(string rawText)
+        {
+            var p = new Dictionary<string, string>();
+
+            var priorityMatch = Regex.Match(rawText, @"\b(high|urgent|critical|low|minor|medium)\b", RegexOptions.IgnoreCase);
+            if (priorityMatch.Success)
+            {
+                p["priority"] = priorityMatch.Groups[1].Value.ToLower();
+                rawText = rawText.Replace(priorityMatch.Value, "").Trim();
+            }
+
+            var categoryKeywords = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["laptop"] = "Hardware", ["computer"] = "Hardware", ["pc"] = "Hardware",
+                ["printer"] = "Hardware", ["monitor"] = "Hardware", ["keyboard"] = "Hardware",
+                ["vpn"] = "Network", ["internet"] = "Network", ["wifi"] = "Network", ["network"] = "Network",
+                ["email"] = "Email", ["outlook"] = "Email", ["mail"] = "Email",
+                ["password"] = "Access", ["access"] = "Access", ["login"] = "Access", ["account"] = "Access",
+                ["software"] = "Software", ["install"] = "Software", ["application"] = "Software",
+                ["phone"] = "Hardware", ["mobile"] = "Hardware",
+            };
+
+            foreach (var kv in categoryKeywords)
+            {
+                if (rawText.Contains(kv.Key, StringComparison.OrdinalIgnoreCase))
+                {
+                    p["categoryHint"] = kv.Value;
+                    break;
+                }
+            }
+
+            var title = char.ToUpper(rawText[0]) + rawText[1..];
+            title = title.Length > 80 ? title[..80] : title;
+            p["title"] = title;
+            p["description"] = title;
+
+            return p;
         }
 
         private static string Truncate(string value, int maxLength)

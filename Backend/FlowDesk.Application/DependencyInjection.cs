@@ -24,6 +24,7 @@ namespace FlowDesk.Application
             // Chat - scoped (depend on MediatR/repositories)
             services.AddScoped<ICommandResolver, CommandResolverService>();
             services.AddScoped<IEntityContextBuilder, EntityContextBuilderService>();
+            services.AddScoped<ActionExecutorService>();
 
             // Chat - singleton (in-memory state, no scoped deps)
             services.AddSingleton<IConversationMemory, InMemoryConversationMemory>();
