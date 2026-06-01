@@ -1,6 +1,8 @@
 using AutoMapper;
 using FlowDesk.Application.Behaviors;
 using FlowDesk.Application.Common.Mappings;
+using FlowDesk.Application.Features.Chat.Interfaces;
+using FlowDesk.Application.Features.Chat.Services;
 using FlowDesk.Application.Features.Requests.Commands;
 using FlowDesk.Application.Features.Requests.DTOs;
 using FlowDesk.Application.Services;
@@ -18,6 +20,16 @@ namespace FlowDesk.Application
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<ISlaService, SlaService>();
             services.AddScoped<PasswordService>();
+
+            // Chat - scoped (depend on MediatR/repositories)
+            services.AddScoped<ICommandResolver, CommandResolverService>();
+            services.AddScoped<IEntityContextBuilder, EntityContextBuilderService>();
+            services.AddScoped<ActionExecutorService>();
+
+            // Chat - singleton (in-memory state, no scoped deps)
+            services.AddSingleton<IConversationMemory, InMemoryConversationMemory>();
+            services.AddSingleton<IRateLimiter, InMemoryRateLimiter>();
+            services.AddSingleton<IGroundingGuard, GroundingGuardService>();
 
             var assembly = typeof(DependencyInjection).Assembly;
 

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useLocation, Outlet } from "react-router-dom";
 import { Header } from "./Header.jsx";
 import { Sidebar } from "./Sidebar.jsx";
+import { ChatWidget } from "../../features/chat/components/ChatWidget.jsx";
 
 export function MainLayout() {
   const location = useLocation();
@@ -47,6 +48,8 @@ export function MainLayout() {
           <Outlet />
         </main>
       </div>
+
+      <ChatWidget />
     </div>
   );
 }

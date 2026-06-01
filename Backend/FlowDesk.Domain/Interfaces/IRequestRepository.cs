@@ -21,6 +21,7 @@ namespace FlowDesk.Domain.Interfaces
         Task HardDelete(Request request);
         Task<bool> ExistsAsync(int requestId);
         Task SaveChangesAsync();
+        Task<Request?> GetByRequestNumberAsync(string requestNumber);
         Task<(int Total, int Open, int PendingApproval, int Assigned, int InProgress, int Resolved, int Closed)> GetDashboardDataAsync(int userId, RoleEnum role);
         Task<(int WithinSla, int NearingBreach, int Breached, int Escalated)> GetSlaSummaryAsync();
     }
