@@ -4,17 +4,17 @@
  * React hook that manages the SignalR connection lifecycle for the request list page.
  *
  * Subscribes to three server events:
- *  ┌──────────────────────────┬────────────────────────────────────────────────┐
- *  │ Event                    │ Sent to (server-side groups)                   │
- *  ├──────────────────────────┼────────────────────────────────────────────────┤
- *  │ RequestUpdated           │ role-Admin, role-Manager, user-{managerId},    │
- *  │ (request created)        │ user-{employeeId}                              │
- *  ├──────────────────────────┼────────────────────────────────────────────────┤
- *  │ RequestStatusUpdated     │ role-Admin, user-{employeeId},                 │
- *  │ (approve/reject/status)  │ user-{assignedToId}, user-{managerId}          │
- *  ├──────────────────────────┼────────────────────────────────────────────────┤
- *  │ RequestAssigned          │ role-Support, user-{assignedToId}, role-Admin  │
- *  └──────────────────────────┴────────────────────────────────────────────────┘
+ *  +--------------------------+----------------------------------------------------+
+ *  | Event                    | Sent to (server-side groups)                       |
+ *  +--------------------------+----------------------------------------------------+
+ *  | RequestUpdated           | role-Admin, role-Manager, user-{managerId},         |
+ *  | (request created)        | user-{employeeId}                                   |
+ *  +--------------------------+----------------------------------------------------+
+ *  | RequestStatusUpdated     | role-Admin, user-{employeeId},                      |
+ *  | (approve/reject/status)  | user-{assignedToId}, user-{managerId}               |
+ *  +--------------------------+----------------------------------------------------+
+ *  | RequestAssigned          | role-Support, user-{assignedToId}, role-Admin       |
+ *  +--------------------------+----------------------------------------------------+
  *
  * The server already targets the correct groups, so ALL authenticated users
  * subscribe on the frontend — server-side groups control who actually receives
@@ -22,11 +22,13 @@
  *
  * On any event: dispatch fetchRequests() (safe refetch, picks up current
  * filters/page/tab from Redux state). No optimistic patching.
+ * Also shows role-based toast notifications.
  */
 
 import { useCallback, useEffect, useRef } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { selectAuthUser } from '../auth/authSlice.js'
+import { toast } from 'sonner'
+import { selectAuthUser, selectRoleNames } from '../auth/authSlice.js'
 import { fetchRequests } from './requestSlice.js'
 import {
   startSignalR,
@@ -46,6 +48,11 @@ import {
 export function useSignalR() {
   const dispatch = useDispatch()
   const user = useSelector(selectAuthUser)
+  const roles = useSelector(selectRoleNames)
+
+  function hasRole(target) {
+    return roles.some(r => String(r).toLowerCase() === target.toLowerCase())
+  }
 
   // Stable handler refs — prevents subscribe/unsubscribe identity mismatches
   // across re-renders. Each ref holds the handler registered with the hub.
@@ -61,24 +68,108 @@ export function useSignalR() {
     (payload) => {
       console.info('[SignalR] RequestUpdated (created):', payload)
       dispatch(fetchRequests())
+
+      const reqId = payload.requestId ?? payload.RequestId
+      const suffix = reqId ? `Request #${reqId}` : 'A new request'
+
+      if (hasRole('Admin')) {
+        toast.info('New request submitted', {
+          description: `${suffix} has been created`,
+          duration: 4000,
+        })
+      } else if (hasRole('Manager')) {
+        toast.info('New request from your team', {
+          description: `${suffix} needs your attention`,
+          duration: 4000,
+        })
+      } else if (hasRole('Employee')) {
+        toast.success('Request created successfully', {
+          description: reqId
+            ? `Your request #${reqId} has been submitted`
+            : 'Your request has been submitted',
+          duration: 4000,
+        })
+      }
     },
-    [dispatch],
+    [dispatch, roles],
   )
 
   const handleStatusUpdated = useCallback(
     (payload) => {
       console.info('[SignalR] RequestStatusUpdated:', payload)
       dispatch(fetchRequests())
+
+      const action = payload.action ?? payload.Action ?? payload.newStatus ?? payload.NewStatus ?? ''
+      const reqId  = payload.requestId ?? payload.RequestId
+      const suffix = reqId ? `Request #${reqId}` : 'A request'
+
+      const messages = {
+        Approved:   { type: 'success', title: 'Request approved',
+                      desc: `${suffix} has been approved` },
+        Rejected:   { type: 'error',   title: 'Request rejected',
+                      desc: `${suffix} has been rejected` },
+        InProgress: { type: 'info',    title: 'Work started',
+                      desc: `${suffix} is now in progress` },
+        Resolved:   { type: 'success', title: 'Request resolved',
+                      desc: `${suffix} has been resolved` },
+        Escalated:  { type: 'warning', title: 'Request escalated',
+                      desc: `${suffix} has been marked urgent` },
+      }
+
+      const msg = messages[action]
+      if (!msg) return
+
+      const shouldShow = (
+        hasRole('Admin') ||
+        hasRole('Manager') ||
+        (hasRole('Employee') && ['Approved','Rejected','InProgress','Resolved'].includes(action)) ||
+        (hasRole('Support') && ['InProgress','Resolved','Escalated'].includes(action))
+      )
+
+      if (!shouldShow) return
+
+      if (msg.type === 'success') toast.success(msg.title, { description: msg.desc, duration: 4000 })
+      else if (msg.type === 'error')   toast.error(msg.title,   { description: msg.desc, duration: 5000 })
+      else if (msg.type === 'warning') toast.warning(msg.title, { description: msg.desc, duration: 5000 })
+      else toast.info(msg.title, { description: msg.desc, duration: 4000 })
     },
-    [dispatch],
+    [dispatch, roles],
   )
 
   const handleAssigned = useCallback(
     (payload) => {
       console.info('[SignalR] RequestAssigned:', payload)
       dispatch(fetchRequests())
+
+      const reqId   = payload.requestId ?? payload.RequestId
+      const suffix  = reqId ? `Request #${reqId}` : 'A request'
+      const assignee = payload.assignedToName ?? payload.AssignedToName ?? 'support'
+
+      if (hasRole('Support')) {
+        toast.info('New request assigned to you', {
+          description: `${suffix} has been assigned to your queue`,
+          duration: 5000,
+        })
+      } else if (hasRole('Admin')) {
+        toast.success('Request assigned', {
+          description: `${suffix} assigned to ${assignee}`,
+          duration: 4000,
+        })
+      } else if (hasRole('Employee')) {
+        toast.info('Your request is being handled', {
+          description: reqId
+            ? `Request #${reqId} has been assigned to the support team`
+            : 'Your request has been assigned to the support team',
+          duration: 4000,
+        })
+      } else if (hasRole('Manager')) {
+        toast.info('Team request assigned', {
+          description: `${suffix} assigned to ${assignee}`,
+          duration: 4000,
+        })
+      }
     },
-    [dispatch],
+    [dispatch, roles],
   )
 
   useEffect(() => {
