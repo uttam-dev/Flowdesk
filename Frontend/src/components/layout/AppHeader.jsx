@@ -19,7 +19,7 @@ function timeAgo(date) {
 
 function buildNotification(event, payload, roles) {
   const hasRole = (r) => roles.some((role) => String(role).toLowerCase() === r.toLowerCase());
-  const reqId = payload.requestId ?? payload.RequestId;
+  const reqId = payload.requestNumber ?? payload.RequestNumber ?? payload.requestId ?? payload.RequestId;
   const suffix = reqId ? `#${reqId}` : "a request";
 
   if (event === "RequestUpdated") {

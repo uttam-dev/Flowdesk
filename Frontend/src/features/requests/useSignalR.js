@@ -69,7 +69,7 @@ export function useSignalR() {
       console.info('[SignalR] RequestUpdated (created):', payload)
       dispatch(fetchRequests())
 
-      const reqId = payload.requestId ?? payload.RequestId
+      const reqId = payload.requestNumber ?? payload.RequestNumber ?? payload.requestId ?? payload.RequestId
       const suffix = reqId ? `Request #${reqId}` : 'A new request'
 
       if (hasRole('Admin')) {
@@ -100,7 +100,7 @@ export function useSignalR() {
       dispatch(fetchRequests())
 
       const action = payload.action ?? payload.Action ?? payload.newStatus ?? payload.NewStatus ?? ''
-      const reqId  = payload.requestId ?? payload.RequestId
+      const reqId  = payload.requestNumber ?? payload.RequestNumber ?? payload.requestId ?? payload.RequestId
       const suffix = reqId ? `Request #${reqId}` : 'A request'
 
       const messages = {
@@ -141,7 +141,7 @@ export function useSignalR() {
       console.info('[SignalR] RequestAssigned:', payload)
       dispatch(fetchRequests())
 
-      const reqId   = payload.requestId ?? payload.RequestId
+      const reqId   = payload.requestNumber ?? payload.RequestNumber ?? payload.requestId ?? payload.RequestId
       const suffix  = reqId ? `Request #${reqId}` : 'A request'
       const assignee = payload.assignedToName ?? payload.AssignedToName ?? 'support'
 

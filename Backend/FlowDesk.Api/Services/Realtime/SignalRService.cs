@@ -1,5 +1,6 @@
 using FlowDesk.Api.Hubs;
 using FlowDesk.Application.Common.Interfaces;
+using FlowDesk.Domain.Interfaces;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 
@@ -22,26 +23,37 @@ namespace FlowDesk.Api.Services.Realtime;
 /// </summary>
 public class SignalRService(
     IHubContext<RequestHub> _hub,
-    ILogger<SignalRService> _logger) : IRealtimeService
+    ILogger<SignalRService> _logger,
+    IRequestRepository _repository) : IRealtimeService
 {
     // ── Shared payload factory ─────────────────────────────────────────────────
 
     /// <summary>
     /// Builds the canonical notification payload sent over the wire to all clients.
-    /// Using a strongly-typed record ensures the JSON shape is consistent across
-    /// all notification methods and is easy to test.
+    /// Includes both <c>RequestNumber</c> (user-friendly) and <c>RequestId</c>
+    /// (internal PK) so frontends can safely migrate without breaking changes.
     /// </summary>
     private static object BuildPayload(
         int requestId,
+        string requestNumber,
         string action,
         int? triggeredById = null) =>
         new
         {
             RequestId     = requestId,
+            RequestNumber = requestNumber,
             Action        = action,
             TriggeredById = triggeredById,
             Timestamp     = DateTime.UtcNow
         };
+
+    // ── Helper: fetch RequestNumber by PK ──────────────────────────────────────
+
+    private async Task<string> GetRequestNumberAsync(int requestId)
+    {
+        var number = await _repository.GetRequestNumberByIdAsync(requestId);
+        return number ?? string.Empty;
+    }
 
     // ── Helper: send to a deduped set of user groups + optional role groups ────
 
@@ -75,11 +87,12 @@ public class SignalRService(
     /// <inheritdoc/>
     public async Task NotifyRequestCreatedAsync(int requestId, int employeeId, int? managerId)
     {
-        var payload = BuildPayload(requestId, "CREATED");
+        var requestNumber = await GetRequestNumberAsync(requestId);
+        var payload = BuildPayload(requestId, requestNumber, "CREATED");
 
         _logger.LogInformation(
-            "Broadcasting RequestCreated: RequestId={RequestId} EmployeeId={EmployeeId} ManagerId={ManagerId}",
-            requestId, employeeId, managerId);
+            "Broadcasting RequestCreated: RequestId={RequestId} RequestNumber={RequestNumber} EmployeeId={EmployeeId} ManagerId={ManagerId}",
+            requestId, requestNumber, employeeId, managerId);
 
         var tasks = new List<Task>
         {
@@ -101,11 +114,12 @@ public class SignalRService(
     /// <inheritdoc/>
     public async Task NotifyRequestUpdatedAsync(int requestId, string action, IEnumerable<int> userIds)
     {
-        var payload = BuildPayload(requestId, action);
+        var requestNumber = await GetRequestNumberAsync(requestId);
+        var payload = BuildPayload(requestId, requestNumber, action);
 
         _logger.LogInformation(
-            "Broadcasting RequestUpdated (legacy): RequestId={RequestId} Action={Action}",
-            requestId, action);
+            "Broadcasting RequestUpdated (legacy): RequestId={RequestId} RequestNumber={RequestNumber} Action={Action}",
+            requestId, requestNumber, action);
 
         var tasks = userIds.Select(userId =>
             _hub.Clients.Group($"user-{userId}").SendAsync("RequestUpdated", payload));
@@ -122,17 +136,19 @@ public class SignalRService(
         int? assignedToId,
         int? managerId)
     {
+        var requestNumber = await GetRequestNumberAsync(requestId);
         var payload = new
         {
             RequestId     = requestId,
+            RequestNumber = requestNumber,
             NewStatus     = newStatus,
             UpdatedById   = updatedById,
             UpdatedAt     = DateTime.UtcNow
         };
 
         _logger.LogInformation(
-            "Broadcasting RequestStatusUpdated: RequestId={RequestId} NewStatus={NewStatus}",
-            requestId, newStatus);
+            "Broadcasting RequestStatusUpdated: RequestId={RequestId} RequestNumber={RequestNumber} NewStatus={NewStatus}",
+            requestId, requestNumber, newStatus);
 
         var tasks = new List<Task>
         {
@@ -171,17 +187,19 @@ public class SignalRService(
         int employeeId,
         int? managerId)
     {
+        var requestNumber = await GetRequestNumberAsync(requestId);
         var payload = new
         {
             RequestId      = requestId,
+            RequestNumber  = requestNumber,
             AssignedToId   = assignedToId,
             AssignedToName = assignedToName,
             AssignedAt     = DateTime.UtcNow
         };
 
         _logger.LogInformation(
-            "Broadcasting RequestAssigned: RequestId={RequestId} AssignedToId={AssignedToId}",
-            requestId, assignedToId);
+            "Broadcasting RequestAssigned: RequestId={RequestId} RequestNumber={RequestNumber} AssignedToId={AssignedToId}",
+            requestId, requestNumber, assignedToId);
 
         var tasks = new List<Task>
         {
@@ -218,11 +236,12 @@ public class SignalRService(
         int? managerId,
         int approvedById)
     {
-        _logger.LogInformation(
-            "Broadcasting RequestApproved: RequestId={RequestId} ApprovedById={ApprovedById}",
-            requestId, approvedById);
+        var requestNumber = await GetRequestNumberAsync(requestId);
+        var payload = BuildPayload(requestId, requestNumber, "Approved", approvedById);
 
-        var payload = BuildPayload(requestId, "Approved", approvedById);
+        _logger.LogInformation(
+            "Broadcasting RequestApproved: RequestId={RequestId} RequestNumber={RequestNumber} ApprovedById={ApprovedById}",
+            requestId, requestNumber, approvedById);
 
         await BroadcastAsync(
             "RequestStatusUpdated",
@@ -241,11 +260,12 @@ public class SignalRService(
         int? managerId,
         int rejectedById)
     {
-        _logger.LogInformation(
-            "Broadcasting RequestRejected: RequestId={RequestId} RejectedById={RejectedById}",
-            requestId, rejectedById);
+        var requestNumber = await GetRequestNumberAsync(requestId);
+        var payload = BuildPayload(requestId, requestNumber, "Rejected", rejectedById);
 
-        var payload = BuildPayload(requestId, "Rejected", rejectedById);
+        _logger.LogInformation(
+            "Broadcasting RequestRejected: RequestId={RequestId} RequestNumber={RequestNumber} RejectedById={RejectedById}",
+            requestId, requestNumber, rejectedById);
 
         await BroadcastAsync(
             "RequestStatusUpdated",
@@ -264,11 +284,12 @@ public class SignalRService(
         int? managerId,
         int supportId)
     {
-        _logger.LogInformation(
-            "Broadcasting RequestStarted (InProgress): RequestId={RequestId} SupportId={SupportId}",
-            requestId, supportId);
+        var requestNumber = await GetRequestNumberAsync(requestId);
+        var payload = BuildPayload(requestId, requestNumber, "InProgress", supportId);
 
-        var payload = BuildPayload(requestId, "InProgress", supportId);
+        _logger.LogInformation(
+            "Broadcasting RequestStarted (InProgress): RequestId={RequestId} RequestNumber={RequestNumber} SupportId={SupportId}",
+            requestId, requestNumber, supportId);
 
         await BroadcastAsync(
             "RequestStatusUpdated",
@@ -287,11 +308,12 @@ public class SignalRService(
         int? managerId,
         int supportId)
     {
-        _logger.LogInformation(
-            "Broadcasting RequestResolved: RequestId={RequestId} SupportId={SupportId}",
-            requestId, supportId);
+        var requestNumber = await GetRequestNumberAsync(requestId);
+        var payload = BuildPayload(requestId, requestNumber, "Resolved", supportId);
 
-        var payload = BuildPayload(requestId, "Resolved", supportId);
+        _logger.LogInformation(
+            "Broadcasting RequestResolved: RequestId={RequestId} RequestNumber={RequestNumber} SupportId={SupportId}",
+            requestId, requestNumber, supportId);
 
         await BroadcastAsync(
             "RequestStatusUpdated",
@@ -311,12 +333,13 @@ public class SignalRService(
         int? assignedToId,
         int escalatedById)
     {
-        _logger.LogInformation(
-            "Broadcasting RequestEscalated: RequestId={RequestId} EscalatedById={EscalatedById} " +
-            "AssignedToId={AssignedToId}",
-            requestId, escalatedById, assignedToId);
+        var requestNumber = await GetRequestNumberAsync(requestId);
+        var payload = BuildPayload(requestId, requestNumber, "Escalated", escalatedById);
 
-        var payload = BuildPayload(requestId, "Escalated", escalatedById);
+        _logger.LogInformation(
+            "Broadcasting RequestEscalated: RequestId={RequestId} RequestNumber={RequestNumber} EscalatedById={EscalatedById} " +
+            "AssignedToId={AssignedToId}",
+            requestId, requestNumber, escalatedById, assignedToId);
 
         await BroadcastAsync(
             "RequestStatusUpdated",
