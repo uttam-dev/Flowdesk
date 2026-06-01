@@ -7,18 +7,17 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using FlowDesk.Application.Common.Interfaces;
+
 namespace FlowDesk.Infrastructure
 {
     public static class DependencyInjection
     {
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
         {
-
             services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 
             services.AddScoped<IJwtTokenService, JwtTokenService>();
-
             services.AddScoped<IRefreshTokenService, RefreshTokenService>();
 
             services.AddScoped<IUserRepository, UserRepository>();
@@ -29,18 +28,25 @@ namespace FlowDesk.Infrastructure
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IRequestsService, RequestsService>();
-
             services.AddScoped<IFileParser, FileParser>();
 
             services.Configure<GroqSettings>(configuration.GetSection(GroqSettings.SectionName));
 
-            services.AddHttpClient("GroqApi")
-                .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
-                {
-                    MaxConnectionsPerServer = 5
-                });
+            services.AddMemoryCache();
+            services.AddSingleton<ICacheService, InMemoryCacheService>();
 
-            services.AddScoped<IChatbotService, GroqChatService>();
+            services.AddSingleton(sp =>
+            {
+                var settings = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<GroqSettings>>().Value;
+                var client = new HttpClient();
+                client.BaseAddress = new Uri(settings.BaseUrl.TrimEnd('/') + "/");
+                client.DefaultRequestHeaders.Authorization =
+                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", settings.ApiKey);
+                client.Timeout = TimeSpan.FromSeconds(settings.TimeoutSeconds);
+                return client;
+            });
+
+            services.AddSingleton<IChatbotService, GroqChatService>();
 
             return services;
         }

@@ -3,6 +3,7 @@ import authReducer, { clearUser, setCredentials, logout } from '../features/auth
 import categoryReducer from '../features/categories/categorySlice.js'
 import userReducer from '../features/users/userSlice.js'
 import requestReducer from '../features/requests/requestSlice.js'
+import chatReducer from '../features/chat/chatSlice.js'
 import { attachAuthTokenBridge } from '../services/authTokenBridge.js'
 import { logoutRequest } from '../features/auth/authApi.js'
 
@@ -25,6 +26,7 @@ export const store = configureStore({
     categories: categoryReducer,
     users: userReducer,
     requests: requestReducer,
+    chat: chatReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().prepend(authListenerMiddleware.middleware),

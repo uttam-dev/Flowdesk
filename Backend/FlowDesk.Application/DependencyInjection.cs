@@ -21,8 +21,15 @@ namespace FlowDesk.Application
             services.AddScoped<ISlaService, SlaService>();
             services.AddScoped<PasswordService>();
 
+            // Chat - scoped (depend on MediatR/repositories)
             services.AddScoped<ICommandResolver, CommandResolverService>();
             services.AddScoped<IEntityContextBuilder, EntityContextBuilderService>();
+            services.AddScoped<ActionExecutorService>();
+
+            // Chat - singleton (in-memory state, no scoped deps)
+            services.AddSingleton<IConversationMemory, InMemoryConversationMemory>();
+            services.AddSingleton<IRateLimiter, InMemoryRateLimiter>();
+            services.AddSingleton<IGroundingGuard, GroundingGuardService>();
 
             var assembly = typeof(DependencyInjection).Assembly;
 
