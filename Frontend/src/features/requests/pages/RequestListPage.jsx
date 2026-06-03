@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -9,6 +9,7 @@ import { selectAuthUser, selectRoleNames } from "../../auth/authSlice.js";
 import { RequestActionModal } from "../components/RequestActionModal.jsx";
 import { RequestFilters } from "../components/RequestFilters.jsx";
 import { RequestTable } from "../components/RequestTable.jsx";
+import { bulkAssignRequestsApi } from "../requestApi.js";
 import {
   approveRequest,
   assignRequest,
@@ -120,11 +121,29 @@ export function RequestListPage() {
     row: null,
   });
   const [actionError, setActionError] = useState(null);
+  const [bulkModal, setBulkModal] = useState({ open: false, saving: false });
   const [showEscalateModal, setShowEscalateModal] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [escalationReason, setEscalationReason] = useState("");
   const [escalationError, setEscalationError] = useState("");
   const [escalating, setEscalating] = useState(false);
+
+  // ── Bulk selection — Admin only ──────────────────────────────────────────
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  const isAdmin = hasRole(roles, "Admin");
+
+  function toggleSelection(id) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function clearSelection() {
+    setSelectedIds(new Set());
+  }
 
   const visibleTabs = useMemo(() => {
     if (isManager) {
@@ -298,6 +317,30 @@ export function RequestListPage() {
     }
   }
 
+  async function handleBulkAssign(payload) {
+    const ids = [...selectedIds];
+    if (ids.length === 0) return;
+    setBulkModal((prev) => ({ ...prev, saving: true, error: null }));
+    try {
+      await bulkAssignRequestsApi({
+        requestIds: ids,
+        assignToId: payload.assignToId,
+        remarksId: payload.remarksId,
+        commentText: payload.commentText,
+      });
+      toast.success(`${ids.length} request${ids.length > 1 ? "s" : ""} assigned`);
+      setBulkModal({ open: false, saving: false, error: null });
+      clearSelection();
+      await refreshAfterAction();
+    } catch (e) {
+      const msg =
+        e?.response?.data?.message ||
+        e?.message ||
+        String(e);
+      setBulkModal((prev) => ({ ...prev, saving: false, error: msg }));
+    }
+  }
+
   return (
     <div className="space-y-6 overflow-x-hidden">
       <div className="flex flex-wrap gap-2 border-b border-gray-200 pb-1">
@@ -336,6 +379,30 @@ export function RequestListPage() {
         onRequestNumberChange={(v) => dispatch(setRequestNumberFilter(v))}
       />
 
+      {isAdmin && selectedIds.size > 0 ? (
+        <div className="flex items-center gap-3 rounded-lg border border-indigo-200 bg-indigo-50/50 px-4 py-2.5">
+          <span className="text-sm font-medium text-indigo-800">
+            {selectedIds.size} request{selectedIds.size > 1 ? "s" : ""} selected
+          </span>
+          <Button
+            type="button"
+            variant="primary"
+            className="min-h-0 px-3 py-1.5 text-xs"
+            onClick={() => setBulkModal({ open: true, saving: false })}
+          >
+            Assign Selected
+          </Button>
+          <Button
+            type="button"
+            variant="secondary"
+            className="min-h-0 px-3 py-1.5 text-xs"
+            onClick={clearSelection}
+          >
+            Clear
+          </Button>
+        </div>
+      ) : null}
+
       <RequestTable
         rows={filteredItems}
         loading={loading}
@@ -343,6 +410,8 @@ export function RequestListPage() {
         currentUserId={currentUserId}
         activeTab={activeTab}
         onAction={handleTableAction}
+        selectedIds={selectedIds}
+        onSelectionToggle={toggleSelection}
         emptyStateText={
           activeTab === "escalated"
             ? "No escalated requests at the moment"
@@ -387,6 +456,17 @@ export function RequestListPage() {
           if (!mutating) setActionModal({ open: false, type: null, row: null });
         }}
         onConfirm={handleActionConfirm}
+      />
+
+      <RequestActionModal
+        open={bulkModal.open}
+        actionType="bulkAssign"
+        saving={bulkModal.saving}
+        serverError={bulkModal.error ?? null}
+        onClose={() => {
+          if (!bulkModal.saving) setBulkModal({ open: false, saving: false, error: null });
+        }}
+        onConfirm={handleBulkAssign}
       />
 
       <Modal

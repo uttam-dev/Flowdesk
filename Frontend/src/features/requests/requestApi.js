@@ -386,6 +386,22 @@ export async function fetchActiveCategoriesApi() {
   return parseArrayPayload(data, mapCategoryOption);
 }
 
+/**
+ * @param {{ requestIds: number[], assignToId: number, remarksId?: number, commentText?: string }} body
+ */
+export async function bulkAssignRequestsApi(body) {
+  const payload = {
+    requestIds: body.requestIds,
+    assignToId: Number(body.assignToId),
+  };
+  if (body.remarksId != null && body.remarksId !== "") {
+    payload.remarksId = Number(body.remarksId);
+  }
+  if (body.commentText?.trim()) payload.commentText = body.commentText.trim();
+  const { data } = await apiClient.post(`${BASE}/bulk-assign`, payload);
+  return data;
+}
+
 export async function fetchSupportUsersApi() {
   const { data } = await apiClient.get("/users/support");
   return parseArrayPayload(data, mapSupportUser);
