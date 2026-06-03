@@ -11,6 +11,7 @@ namespace FlowDesk.Domain.Interfaces
     public interface IRequestRepository
     {
         Task<Request?> GetByIdAsync(int requestId);
+        Task<List<Request>> GetByIdsAsync(List<int> requestIds);
         Task<Request?> GetByIdWithEscalationAsync(int requestId);
         Task<(int, IReadOnlyList<Request?>)> GetAllAsync(FilterRequestQueryDto filter, int userId, string role);
         Task<(int, IReadOnlyList<Request?>)> GetAllTeamRequestsAsync(FilterRequestQueryDto filter, int userId);

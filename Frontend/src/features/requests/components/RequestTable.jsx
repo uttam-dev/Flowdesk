@@ -85,8 +85,25 @@ export function RequestTable({
   activeTab,
   onAction,
   emptyStateText,
+  selectedIds,
+  onSelectionToggle,
 }) {
   const [expandedId, setExpandedId] = useState(null);
+  const isAdmin = hasRole(roles, "Admin");
+  const showSelection = isAdmin;
+
+  const allSelected = showSelection && rows.length > 0 && rows.every((r) => selectedIds?.has(r.requestId));
+  const someSelected = showSelection && rows.some((r) => selectedIds?.has(r.requestId));
+
+  function toggleSelectAll() {
+    if (!onSelectionToggle) return;
+    if (allSelected) {
+      rows.forEach((r) => onSelectionToggle(r.requestId));
+    } else {
+      const toSelect = rows.filter((r) => !selectedIds?.has(r.requestId));
+      toSelect.forEach((r) => onSelectionToggle(r.requestId));
+    }
+  }
 
   if (loading === "pending" && !rows.length) {
     return (
@@ -105,6 +122,18 @@ export function RequestTable({
       <table className="min-w-full divide-y divide-gray-200 text-left text-sm">
         <TableHead>
           <TableRow className="hover:bg-transparent">
+            {showSelection ? (
+              <Th className="w-10">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 cursor-pointer rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                  checked={allSelected}
+                  ref={(el) => { if (el && someSelected && !allSelected) el.indeterminate = true; }}
+                  onChange={toggleSelectAll}
+                  onClick={(e) => e.stopPropagation()}
+                />
+              </Th>
+            ) : null}
             <Th>Request</Th>
             <Th>Category</Th>
             <Th>Priority</Th>
@@ -117,7 +146,7 @@ export function RequestTable({
         <TableBody>
           {rows.length === 0 ? (
             <TableRow>
-              <Td colSpan={7} className="py-10 text-center text-gray-500">
+              <Td colSpan={showSelection ? 8 : 7} className="py-10 text-center text-gray-500">
                 {emptyStateText || "No requests found."}
               </Td>
             </TableRow>
@@ -125,12 +154,23 @@ export function RequestTable({
             rows.map((row) => {
               const expanded = expandedId === row.requestId;
               const actions = getTableRowActions(row, roles, activeTab);
+              const checked = selectedIds?.has(row.requestId) ?? false;
               return (
                 <Fragment key={row.requestId}>
                   <TableRow
                     className={`cursor-pointer`}
                     onClick={() => toggleExpand(row)}
                   >
+                    {showSelection ? (
+                      <Td className="w-10" onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 cursor-pointer rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                          checked={checked}
+                          onChange={() => onSelectionToggle?.(row.requestId)}
+                        />
+                      </Td>
+                    ) : null}
                     <Td className="whitespace-normal">
                       <p
                         className="font-semibold text-gray-900"
@@ -218,7 +258,7 @@ export function RequestTable({
                   </TableRow>
                   {expanded ? (
                     <TableRow className="bg-gray-50/80 hover:bg-gray-50/80">
-                      <Td colSpan={7} className="whitespace-normal py-4">
+                      <Td colSpan={showSelection ? 8 : 7} className="whitespace-normal py-4">
                         <dl className="grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
                           <div className="col-span-full sm:col-span-2 lg:col-span-4">
                             <dt className="font-medium text-gray-500">

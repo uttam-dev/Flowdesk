@@ -117,7 +117,22 @@ namespace FlowDesk.Api.Controllers
             });
         }
 
-        //// POST: api/requests/{id}/assign
+        //        // POST: api/requests/bulk-assign
+        [Authorize("RequireAdminRole")]
+        [HttpPost("bulk-assign")]
+        public async Task<IActionResult> BulkAssign([FromBody] BulkAssignRequestsCommand command)
+        {
+            int currentUserId = Convert.ToInt32(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var cmd = command with { CurrentUserId = currentUserId };
+            await _mediator.Send(cmd);
+
+            return Ok(new ApiResponseDto
+            {
+                Message = "Requests assigned successfully",
+            });
+        }
+
+        // POST: api/requests/{id}/assign
         [Authorize("RequireAdminRole")]
         [HttpPost("{requestId}/assign")]
         public async Task<IActionResult> Assign(int requestId, [FromBody] AssignRequestDto dto)

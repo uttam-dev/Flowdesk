@@ -136,6 +136,17 @@ namespace FlowDesk.Infrastructure.Repositories
                             .FirstOrDefaultAsync(r => r.RequestId == requestId);
         }
 
+        public async Task<List<Request>> GetByIdsAsync(List<int> requestIds)
+        {
+            return await _context.Requests
+                .AsNoTracking()
+                .Include(r => r.Category)
+                .Include(r => r.Employee)
+                    .ThenInclude(e => e!.Manager!)
+                .Where(r => requestIds.Contains(r.RequestId))
+                .ToListAsync();
+        }
+
         public Task<Request?> GetByIdWithEscalationAsync(int requestId)
         {
             return _context.Requests
@@ -256,7 +267,7 @@ namespace FlowDesk.Infrastructure.Repositories
 
         public async Task<Request> Update(Request request)
         {
-            _context.Requests.Update(request);
+            _context.Entry(request).State = EntityState.Modified;
             await _context.SaveChangesAsync();
             return request;
         }

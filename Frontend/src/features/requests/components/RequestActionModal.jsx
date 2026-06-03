@@ -39,6 +39,15 @@ const CONFIG = {
     tone: 'primary',
     showSupport: true,
   },
+  bulkAssign: {
+    title: 'Assign selected requests',
+    remarkActionType: REMARK_ACTION_TYPE.Assign,
+    remarkRequired: false,
+    commentRequired: false,
+    confirmLabel: 'Assign',
+    tone: 'primary',
+    showSupport: true,
+  },
   start: {
     title: 'Start request',
     remarkActionType: REMARK_ACTION_TYPE.Status,
@@ -144,7 +153,7 @@ export function RequestActionModal({
     } else if (actionType === 'reject') {
       payload.remarksId = toIdValue(remarksId)
       payload.commentText = commentText.trim()
-    } else if (actionType === 'assign') {
+    } else if (actionType === 'assign' || actionType === 'bulkAssign') {
       payload.assignToId = toIdValue(assignToId)
       const rid = toIdValue(remarksId)
       if (rid !== undefined) payload.remarksId = rid
