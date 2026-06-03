@@ -151,6 +151,14 @@ namespace FlowDesk.Infrastructure.Repositories
                             .FirstOrDefaultAsync(r => r.RequestId == requestId);
         }
 
+        public async Task<string?> GetRequestNumberByIdAsync(int requestId)
+        {
+            return await _context.Requests
+                .Where(r => r.RequestId == requestId)
+                .Select(r => r.RequestNumber)
+                .FirstOrDefaultAsync();
+        }
+
         public async Task<Request?> GetByRequestNumberAsync(string requestNumber)
         {
             return await _context.Requests

@@ -6,6 +6,7 @@ import { FlowDeskLogo } from "../brand/FlowDeskLogo.jsx";
 import { Button } from "../ui/Button.jsx";
 import { Modal } from "../ui/Modal.jsx";
 import { apiClient } from "../../services/apiClient.js";
+import { stopSignalR } from "../../services/signalrService.js";
 import {
   logout,
   selectAuthUser,
@@ -262,7 +263,10 @@ export function Sidebar({ collapsed, onNavigate, mobile }) {
           type="button"
           variant="secondary"
           className="mt-4 inline-flex w-full items-center justify-center gap-2"
-          onClick={() => dispatch(logout())}
+          onClick={() => {
+            stopSignalR()
+            dispatch(logout())
+          }}
         >
           <svg
             className="h-4 w-4 shrink-0"
