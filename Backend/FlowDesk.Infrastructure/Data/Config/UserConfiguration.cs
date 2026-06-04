@@ -22,10 +22,6 @@ namespace FlowDesk.Infrastructure.Data.Config
                 .IsUnique()
                 .HasDatabaseName("IX_Users_Email");
 
-
-            builder.HasIndex(x => x.Email)
-                .IsUnique();
-
             builder.Property(x => x.PasswordHash)
                 .IsRequired()
                 .HasMaxLength(256);
@@ -37,7 +33,7 @@ namespace FlowDesk.Infrastructure.Data.Config
                 .IsRequired();
 
             builder.Property(x => x.CreatedOn)
-               .HasDefaultValueSql("GETUTCDATE()")
+               .HasDefaultValueSql("UTC_TIMESTAMP()")
                .ValueGeneratedOnAdd();
 
             // Role relation

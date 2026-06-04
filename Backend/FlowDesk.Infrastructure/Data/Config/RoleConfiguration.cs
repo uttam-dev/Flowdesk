@@ -10,6 +10,9 @@ namespace FlowDesk.Infrastructure.Data.Config
         {
             builder.HasKey(x => x.RoleId);
 
+            builder.Property(x => x.RoleId)
+                   .ValueGeneratedNever();
+
             builder.Property(x => x.RoleName)
                 .IsRequired()
                 .HasMaxLength(100);

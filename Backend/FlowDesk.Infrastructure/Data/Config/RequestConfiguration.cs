@@ -25,12 +25,12 @@ namespace FlowDesk.Infrastructure.Data.Config
                 .IsRequired();
 
             builder.Property(x => x.CreatedOn)
-                .HasDefaultValueSql("GETUTCDATE()")
+                .HasDefaultValueSql("UTC_TIMESTAMP()")
                 .ValueGeneratedOnAdd();
 
-            builder.Property(x => x.UpdatedOn)
-                .HasDefaultValueSql("GETUTCDATE()")
-                .ValueGeneratedOnAdd();
+            //builder.Property(x => x.UpdatedOn)
+            //    .HasDefaultValueSql("UTC_TIMESTAMP()")
+            //    .ValueGeneratedOnAdd();
 
             builder.Property(x => x.ClosedOn)
                 .IsRequired(false);

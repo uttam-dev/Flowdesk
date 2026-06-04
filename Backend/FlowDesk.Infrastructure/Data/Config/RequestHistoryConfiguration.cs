@@ -17,14 +17,14 @@ namespace FlowDesk.Infrastructure.Data.Config
                 .IsRequired();
 
             builder.Property(x => x.ChangedOn)
-               .HasDefaultValueSql("GETUTCDATE()")
+               .HasDefaultValueSql("UTC_TIMESTAMP()")
                .ValueGeneratedOnAdd();
 
             builder.Property(x => x.RequestId)
                 .IsRequired();
 
             builder.Property(x => x.OldStatus)
-                .HasConversion<int>();
+                .HasConversion<int?>();
 
             builder.Property(x => x.NewStatus)
                 .HasConversion<int>();
