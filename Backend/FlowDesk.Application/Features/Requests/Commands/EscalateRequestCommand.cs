@@ -46,20 +46,21 @@ namespace FlowDesk.Application.Features.Requests.Commands
                 throw new ConflictException("Request is already escalated");
             }
 
-            var escalatedOn = DateTime.UtcNow;
+            var currentTime = DateTime.UtcNow;
 
             requestResult.IsEscalated = true;
-            requestResult.EscalatedOn = escalatedOn;
+            requestResult.EscalatedOn = currentTime;
             requestResult.EscalatedBy = request.AdminUserId;
             requestResult.EscalationReason = request.Dto.EscalationReason;
+            requestResult.UpdatedOn = currentTime;
 
             await requestRepository.AddEscalationHistoryAsync(new EscalationHistory
             {
                 RequestId = requestResult.RequestId,
                 EscalatedBy = request.AdminUserId,
-                EscalatedOn = escalatedOn,
+                EscalatedOn = currentTime,
                 EscalationReason = request.Dto.EscalationReason,
-                CreatedOn = escalatedOn
+                CreatedOn = currentTime
             });
 
             await requestRepository.Update(requestResult);

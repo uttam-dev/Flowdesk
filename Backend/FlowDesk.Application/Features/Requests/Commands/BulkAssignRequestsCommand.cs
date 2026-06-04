@@ -105,6 +105,8 @@ namespace FlowDesk.Application.Features.Requests.Commands
                 // ── Update entity ──────────────────────────────────────────────
                 fetchedRequest.Status = RequestStatusEnum.Assigned;
                 fetchedRequest.AssignedToId = request.AssignToId;
+                fetchedRequest.UpdatedOn = DateTime.UtcNow;
+
                 await requestRepository.Update(fetchedRequest);
 
                 // ── Real-time notification ─────────────────────────────────────
