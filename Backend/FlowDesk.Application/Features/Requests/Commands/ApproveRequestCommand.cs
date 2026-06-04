@@ -48,6 +48,8 @@ namespace FlowDesk.Application.Features.Requests.Commands
             };
 
             fetchedRequest.Status = RequestStatusEnum.Approved;
+            fetchedRequest.UpdatedOn = DateTime.UtcNow;
+
             await requestRepository.Update(fetchedRequest);
 
             if (request.Dto.CommentText != null)

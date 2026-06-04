@@ -86,6 +86,8 @@ namespace FlowDesk.Application.Features.Requests.Commands
 
             fetchedRequest.Status = Domain.Enums.RequestStatusEnum.Assigned;
             fetchedRequest.AssignedToId = request.Dto.AssignToId;
+            fetchedRequest.UpdatedOn = DateTime.UtcNow;
+
             await requestRepository.Update(fetchedRequest);
 
             if (request.Dto.CommentText != null)

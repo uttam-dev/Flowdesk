@@ -68,6 +68,8 @@ namespace FlowDesk.Application.Features.Requests.Commands
             });
 
             fetchedRequest.Status = Domain.Enums.RequestStatusEnum.Rejected;
+            fetchedRequest.UpdatedOn = DateTime.UtcNow;
+
             await requestRepository.Update(fetchedRequest);
 
             logger.LogInformation("Completed {Operation} for RequestId {RequestId}", nameof(RejectRequestCommandHandler), request.RequestId);

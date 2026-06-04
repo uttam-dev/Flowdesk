@@ -69,6 +69,8 @@ namespace FlowDesk.Application.Features.Requests.Commands
                 request.RequestId, currentStatus, newStatus);
 
             req.Status = newStatus;
+            req.UpdatedOn = DateTime.UtcNow;
+
             await requestRepository.Update(req);
 
             // Add history
