@@ -25,7 +25,8 @@ namespace FlowDesk.Infrastructure.Data.Config
                 .IsRequired();
 
             builder.Property(x => x.CreatedOn)
-                .HasDefaultValueSql("UTC_TIMESTAMP()")
+                .HasColumnType("timestamp")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .ValueGeneratedOnAdd();
 
             //builder.Property(x => x.UpdatedOn)
