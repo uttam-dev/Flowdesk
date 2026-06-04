@@ -10,6 +10,7 @@ using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using System.Configuration;
 using System.Text;
 //using Microsoft.OpenApi.Models;
 
@@ -127,9 +128,10 @@ namespace FlowDesk.Api
             {
                 options.AddPolicy("AllowFrontend", policy =>
                 {
+
+                    var allowedOrigins = configuration.GetSection("CorsSettings:AllowedOrigins").Get<string[]>();
                     policy
-                    .WithOrigins("http://localhost:5173", "https://localhost:5173",
-                    "http://localhost:5174", "https://localhost:5174")
+                    .WithOrigins(allowedOrigins!)
                     .AllowAnyMethod()
                     .AllowCredentials()
                     .AllowAnyHeader();
