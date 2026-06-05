@@ -17,36 +17,17 @@ namespace FlowDesk.Api.Controllers
     public class CategoriesController(IMediator _mediator, IMapper _mapper) : ControllerBase
     {
         // GET: api/categories
-        [Authorize]
+        //[Authorize(policy: "RequireAdminRole")]
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] FilterCategoryDataQueryDto query)
         {
-            string role = User.FindFirst(ClaimTypes.Role)?.Value!;
-
-            query.RoleId = (int)Enum.Parse<RoleEnum>(role);
 
             var result = await _mediator.Send(new GetAllCategoriesQuery(query));
 
-            if (User.IsInRole(RoleEnum.Admin.ToString()))
-            {
-                var adminData = new PagedResult<CategoryAdminResponseDto>
-                {
-                    Items = _mapper.Map<List<CategoryAdminResponseDto>>(result.Items),
-                    TotalCount = result.TotalCount,
-                    PageNumber = result.PageNumber,
-                    PageSize = result.PageSize
-                };
 
-                return Ok(new ApiResponseDto
-                {
-                    Message = "Categories fetched successfully",
-                    Data = adminData
-                });
-            }
-
-            var basicData = new PagedResult<CategoryBasicResponseDto>
+            var adminData = new PagedResult<CategoryAdminResponseDto>
             {
-                Items = _mapper.Map<List<CategoryBasicResponseDto>>(result.Items),
+                Items = _mapper.Map<List<CategoryAdminResponseDto>>(result.Items),
                 TotalCount = result.TotalCount,
                 PageNumber = result.PageNumber,
                 PageSize = result.PageSize
@@ -55,8 +36,18 @@ namespace FlowDesk.Api.Controllers
             return Ok(new ApiResponseDto
             {
                 Message = "Categories fetched successfully",
-                Data = basicData
+                Data = adminData
             });
+
+        }
+
+        // GET: api/categories/active
+        //[Authorize]
+        [HttpGet("active")]
+        public async Task<IActionResult> GetActive()
+        {
+            var result = await _mediator.Send(new GetActiveCategoriesQuery());
+            return Ok(new ApiResponseDto() { Message = "Active categories fetched successfully", Data = result});
         }
 
         // GET: api/categories/{id}
