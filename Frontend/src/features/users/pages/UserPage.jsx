@@ -246,34 +246,35 @@ export function UserPage() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-3">
-        <label className="grid gap-1 text-sm font-medium text-gray-700">
-          Search by email
-          <div className="flex gap-2">
-            <input
-              type="email"
-              className="min-h-11 flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm transition placeholder:text-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
-              placeholder="Search by email"
-              value={searchEmail}
-              onChange={(ev) => setSearchEmail(ev.target.value)}
-              onKeyDown={(ev) => {
-                if (ev.key === "Enter") {
-                  handleSearchEmail();
-                }
-              }}
-            />
-            <Button type="button" variant="primary" onClick={handleSearchEmail}>
-              Search
-            </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={handleClearSearch}
-            >
-              Clear
-            </Button>
-          </div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <label className="grid min-w-0 flex-1 gap-1 text-sm font-medium text-gray-700">
+          Search
+          <input
+            type="email"
+            className="min-h-[44px] w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm transition placeholder:text-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+            placeholder="Search by email"
+            value={searchEmail}
+            onChange={(ev) => setSearchEmail(ev.target.value)}
+            onKeyDown={(ev) => {
+              if (ev.key === "Enter") {
+                handleSearchEmail();
+              }
+            }}
+          />
         </label>
+        <div className="flex shrink-0 gap-2">
+          <Button type="button" variant="primary" className="min-h-[44px]" onClick={handleSearchEmail}>
+            Search
+          </Button>
+          <Button
+            type="button"
+            variant="secondary" className="min-h-[44px]"
+            onClick={handleClearSearch}
+          >
+            Clear
+          </Button>
+        </div>
+
       </div>
 
       <UserTable
