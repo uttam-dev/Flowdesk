@@ -56,8 +56,8 @@ function SearchableManagerSelect({
         aria-haspopup="listbox"
         aria-controls={listId}
         className={`flex min-h-[44px] w-full items-center justify-between rounded-lg border bg-white px-3 py-2 text-left text-sm text-gray-900 shadow-sm transition-all duration-200 focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:bg-gray-50 ${error
-            ? "border-red-500 focus:border-red-500 focus:ring-red-500"
-            : "border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+          ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+          : "border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
           }`}
         onClick={() => {
           if (!disabled) setOpen((o) => !o);
@@ -112,8 +112,8 @@ function SearchableManagerSelect({
                     role="option"
                     aria-selected={value === m.id}
                     className={`w-full px-3 py-2 text-left text-sm transition hover:bg-gray-50 ${value === m.id
-                        ? "bg-indigo-50 font-medium text-indigo-900"
-                        : "text-gray-800"
+                      ? "bg-indigo-50 font-medium text-indigo-900"
+                      : "text-gray-800"
                       }`}
                     onClick={() => {
                       onChange(m.id);
@@ -163,7 +163,7 @@ function validateFullName(name) {
   if (!t) return "Full name is required";
   if (t.length < 3) return "Minimum 3 characters required";
   if (!/^[A-Za-z ]+$/.test(t)) return "Only letters and spaces allowed";
-  if (t.length > 200) return "Use up to 200 characters";
+  if (t.length > 70) return "Use up to 70 characters";
   return null;
 }
 
@@ -394,22 +394,20 @@ function UserFormModalInner({
           <button
             type="button"
             onClick={() => setActiveTab("details")}
-            className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition-all duration-200 ${
-              activeTab === "details"
-                ? "bg-white text-gray-900 shadow-sm"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
+            className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition-all duration-200 ${activeTab === "details"
+              ? "bg-white text-gray-900 shadow-sm"
+              : "text-gray-500 hover:text-gray-700"
+              }`}
           >
             User Details
           </button>
           <button
             type="button"
             onClick={() => setActiveTab("password")}
-            className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition-all duration-200 ${
-              activeTab === "password"
-                ? "bg-white text-gray-900 shadow-sm"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
+            className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition-all duration-200 ${activeTab === "password"
+              ? "bg-white text-gray-900 shadow-sm"
+              : "text-gray-500 hover:text-gray-700"
+              }`}
           >
             Reset Password
           </button>
@@ -428,25 +426,29 @@ function UserFormModalInner({
             </p>
           ) : null}
 
-          <Input
-            id="fullName"
-            label={
-              <>
-                Full name
-                <span className="text-red-500 ml-1">*</span>
-              </>
-            }
-            value={fullName}
-            onChange={(ev) => {
-              setFullName(ev.target.value);
-              if (fieldErrors.fullName) {
-                setFieldErrors((prev) => ({ ...prev, fullName: undefined }));
+          <div className="flex flex-col gap-1">
+            <Input
+              id="fullName"
+              label={
+                <>
+                  Full name
+                  <span className="text-red-500 ml-1">*</span>
+                </>
               }
-            }}
-            disabled={saving}
-            autoComplete="name"
-            error={fieldErrors.fullName}
-          />
+              value={fullName}
+              onChange={(ev) => {
+                setFullName(ev.target.value);
+                if (fieldErrors.fullName) {
+                  setFieldErrors((prev) => ({ ...prev, fullName: undefined }));
+                }
+              }}
+              disabled={saving}
+              maxLength={70}
+              autoComplete="name"
+              error={fieldErrors.fullName}
+            />
+            <p className="text-xs text-gray-500">{fullName.trim().length}/70</p>
+          </div>
 
           <Input
             id="email"
@@ -587,53 +589,41 @@ function UserFormModalInner({
             </div>
           )}
 
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="newPassword" className="text-sm font-medium text-gray-700">
-              New Password <span className="text-red-500">*</span>
-            </label>
-            <input
-              id="newPassword"
-              type="password"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm transition-all duration-200 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:bg-gray-50"
-              value={newPassword}
-              onChange={(e) => {
-                setNewPassword(e.target.value)
-                if (passErrors.newPassword)
-                  setPassErrors((prev) => ({ ...prev, newPassword: undefined }))
-              }}
-              disabled={passLoading}
-              autoComplete="new-password"
-            />
-            {passErrors.newPassword && (
-              <p className="text-red-500 text-sm mt-1" role="alert">
-                {passErrors.newPassword}
-              </p>
-            )}
-          </div>
+          <PasswordInput
+            id="newPassword"
+            label={
+              <>
+                New Password <span className="text-red-500">*</span>
+              </>
+            }
+            value={newPassword}
+            onChange={(e) => {
+              setNewPassword(e.target.value)
+              if (passErrors.newPassword)
+                setPassErrors((prev) => ({ ...prev, newPassword: undefined }))
+            }}
+            disabled={passLoading}
+            autoComplete="new-password"
+            error={passErrors.newPassword}
+          />
 
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
-              Confirm Password <span className="text-red-500">*</span>
-            </label>
-            <input
-              id="confirmPassword"
-              type="password"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 shadow-sm transition-all duration-200 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:bg-gray-50"
-              value={confirmPassword}
-              onChange={(e) => {
-                setConfirmPassword(e.target.value)
-                if (passErrors.confirmPassword)
-                  setPassErrors((prev) => ({ ...prev, confirmPassword: undefined }))
-              }}
-              disabled={passLoading}
-              autoComplete="new-password"
-            />
-            {passErrors.confirmPassword && (
-              <p className="text-red-500 text-sm mt-1" role="alert">
-                {passErrors.confirmPassword}
-              </p>
-            )}
-          </div>
+          <PasswordInput
+            id="confirmPassword"
+            label={
+              <>
+                Confirm Password <span className="text-red-500">*</span>
+              </>
+            }
+            value={confirmPassword}
+            onChange={(e) => {
+              setConfirmPassword(e.target.value)
+              if (passErrors.confirmPassword)
+                setPassErrors((prev) => ({ ...prev, confirmPassword: undefined }))
+            }}
+            disabled={passLoading}
+            autoComplete="new-password"
+            error={passErrors.confirmPassword}
+          />
         </div>
       )}
     </Modal>

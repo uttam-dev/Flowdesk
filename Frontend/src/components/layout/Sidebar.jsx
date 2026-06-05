@@ -5,6 +5,7 @@ import { NavLink } from "react-router-dom";
 import { FlowDeskLogo } from "../brand/FlowDeskLogo.jsx";
 import { Button } from "../ui/Button.jsx";
 import { Modal } from "../ui/Modal.jsx";
+import { PasswordInput } from "../ui/PasswordInput.jsx";
 import { apiClient } from "../../services/apiClient.js";
 import { stopSignalR } from "../../services/signalrService.js";
 import {
@@ -332,53 +333,32 @@ export function Sidebar({ collapsed, onNavigate, mobile }) {
               </div>
             )}
 
-            <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
-                Current password
-              </label>
-              <input
-                type="password"
-                className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm placeholder-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                disabled={loading}
-              />
-              {errors.currentPassword && (
-                <p className="mt-1 text-xs text-red-600">{errors.currentPassword}</p>
-              )}
-            </div>
+            <PasswordInput
+              id="currentPassword"
+              label="Current password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              disabled={loading}
+              error={errors.currentPassword}
+            />
 
-            <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
-                New password
-              </label>
-              <input
-                type="password"
-                className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm placeholder-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                disabled={loading}
-              />
-              {errors.newPassword && (
-                <p className="mt-1 text-xs text-red-600">{errors.newPassword}</p>
-              )}
-            </div>
+            <PasswordInput
+              id="newPassword"
+              label="New password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              disabled={loading}
+              error={errors.newPassword}
+            />
 
-            <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
-                Confirm password
-              </label>
-              <input
-                type="password"
-                className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm placeholder-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                disabled={loading}
-              />
-              {errors.confirmPassword && (
-                <p className="mt-1 text-xs text-red-600">{errors.confirmPassword}</p>
-              )}
-            </div>
+            <PasswordInput
+              id="confirmPassword"
+              label="Confirm password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              disabled={loading}
+              error={errors.confirmPassword}
+            />
           </div>
         </Modal>,
         document.body
