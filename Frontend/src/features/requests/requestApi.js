@@ -51,12 +51,12 @@ function mapRequestRow(raw) {
       raw.escalationHistory ?? raw.EscalationHistory,
     )
       ? (raw.escalationHistory ?? raw.EscalationHistory).map((item) => ({
-          escalationId: item.escalationId ?? item.EscalationId,
-          escalatedByName: item.escalatedByName ?? item.EscalatedByName ?? "",
-          escalatedOn: item.escalatedOn ?? item.EscalatedOn ?? null,
-          escalationReason:
-            item.escalationReason ?? item.EscalationReason ?? "",
-        }))
+        escalationId: item.escalationId ?? item.EscalationId,
+        escalatedByName: item.escalatedByName ?? item.EscalatedByName ?? "",
+        escalatedOn: item.escalatedOn ?? item.EscalatedOn ?? null,
+        escalationReason:
+          item.escalationReason ?? item.EscalationReason ?? "",
+      }))
       : [],
     assignedToId: raw.assignedToId ?? raw.AssignedToId ?? null,
     assignedToName:
@@ -380,7 +380,7 @@ export async function updateRequestStatusApi(id, body) {
 }
 
 export async function fetchActiveCategoriesApi() {
-  const { data } = await apiClient.get("/categories", {
+  const { data } = await apiClient.get("/categories/active", {
     params: { isActive: true },
   });
   return parseArrayPayload(data, mapCategoryOption);
