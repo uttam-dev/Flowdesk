@@ -8,6 +8,7 @@ namespace FlowDesk.Domain.Interfaces
         Task<Category?> GetByIdAsync(int categoryId);
         Task<Category?> GetByNameAsync(string categoryName);
         Task<(int, IReadOnlyList<Category>)> GetAllAsync(FilterCategoryDataQueryDto query);
+        Task<List<Category>> GetAllActiveAsync();
         Task<Category> AddAsync(Category category);
         Task<Category> Update(Category category);
         Task ToggleActive(Category category);
