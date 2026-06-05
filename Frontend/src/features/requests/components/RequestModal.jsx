@@ -13,11 +13,11 @@ function validateForm(values) {
   const description = values.description.trim();
   if (!values.categoryId) errors.categoryId = "Category is required";
   if (!title) errors.title = "Title is required";
-  if (title.length < 1 || title.length > 100)
-    errors.title = "Title must be 1–100 characters";
+  if (title.length < 1 || title.length > 50)
+    errors.title = "Title must be 1–50 characters";
   if (!description) errors.description = "Description is required";
-  if (description.length > 500)
-    errors.description = "Description must be at most 500 characters";
+  if (description.length > 150)
+    errors.description = "Description must be at most 150 characters";
   if (!values.priority) errors.priority = "Priority is required";
   return errors;
 }
@@ -118,7 +118,7 @@ export function RequestForm({
           if (error) setError(null);
         }}
         disabled={saving}
-        maxLength={100}
+        maxLength={50}
         error={fieldErrors.title}
       />
 
@@ -143,14 +143,14 @@ export function RequestForm({
             if (error) setError(null);
           }}
           disabled={saving}
-          maxLength={500}
+          maxLength={150}
         />
         {fieldErrors.description ? (
           <p className="text-red-500 text-sm mt-1" role="alert">
             {fieldErrors.description}
           </p>
         ) : null}
-        <p className="text-xs text-gray-500">{description.length}/500</p>
+        <p className="text-xs text-gray-500">{description.trim().length}/150</p>
       </div>
 
       <div className="flex flex-col gap-1.5">
@@ -209,7 +209,7 @@ export function RequestModal({
   return (
     <Modal
       open
-      onClose={saving ? () => {} : onClose}
+      onClose={saving ? () => { } : onClose}
       title="Create request"
       closeOnOverlayClick={!saving}
       closeOnEscape={!saving}
