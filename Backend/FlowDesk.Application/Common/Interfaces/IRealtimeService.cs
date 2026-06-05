@@ -62,6 +62,7 @@ namespace FlowDesk.Application.Common.Interfaces
 
         Task NotifyRemoteSessionAcceptedAsync(
             int supportUserId,
+            int targetUserId,
             int sessionId,
             CancellationToken ct = default);
 

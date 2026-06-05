@@ -51,8 +51,8 @@ namespace FlowDesk.Application.Features.Remote.Commands
             if (session.Status != RemoteSessionStatusEnum.Accepted)
             {
                 logger.LogWarning(
-                    "Invalid session state transition for SessionId {SessionId}. CurrentStatus {Status}",
-                    cmd.SessionId, session.Status);
+                    "Invalid session state transition for SessionId {SessionId}. CurrentStatus {Status} CalledByUserId {CalledByUserId}",
+                    cmd.SessionId, session.Status,cmd.CalledByUserId);
 
                 throw new BadRequestException(
                     $"Session must be in Accepted state to activate. Current: {session.Status}");

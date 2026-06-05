@@ -346,16 +346,21 @@ public class SignalRService(
 
     public async Task NotifyRemoteSessionAcceptedAsync(
         int supportUserId,
+        int targetUserId,
         int sessionId,
         CancellationToken ct = default)
     {
         _logger.LogInformation(
-            "Broadcasting RemoteSessionAccepted: SessionId={SessionId} SupportUserId={SupportUserId}",
-            sessionId, supportUserId);
+            "Broadcasting RemoteSessionAccepted: SessionId={SessionId} SupportUserId={SupportUserId} TargetUserId={TargetUserId}",
+            sessionId, supportUserId, targetUserId);
 
-        await _hub.Clients
-            .Group($"user-{supportUserId}")
-            .SendAsync("RemoteSessionAccepted", new { sessionId }, ct);
+        var tasks = new List<Task>
+        {
+            _hub.Clients.Group($"user-{supportUserId}").SendAsync("RemoteSessionAccepted", new { sessionId }, ct),
+            _hub.Clients.Group($"user-{targetUserId}").SendAsync("RemoteSessionAccepted", new { sessionId }, ct)
+        };
+
+        await Task.WhenAll(tasks);
 
         _logger.LogInformation(
             "RemoteSessionAccepted broadcast complete: SessionId={SessionId}",

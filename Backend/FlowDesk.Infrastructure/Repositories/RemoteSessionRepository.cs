@@ -73,11 +73,11 @@ namespace FlowDesk.Infrastructure.Repositories
             return session;
         }
 
-        public Task UpdateAsync(RemoteSession session, CancellationToken ct = default)
+        public async Task UpdateAsync(RemoteSession session, CancellationToken ct = default)
         {
             session.UpdatedAt = DateTime.UtcNow;
             _context.RemoteSessions.Update(session);
-            return Task.CompletedTask;
+            await _context.SaveChangesAsync();
         }
     }
 

@@ -76,6 +76,7 @@ namespace FlowDesk.Application.Features.Remote.Commands
 
                 await _realtime.NotifyRemoteSessionAcceptedAsync(
                     supportUserId: session.InitiatedByUserId,
+                    targetUserId: session.TargetUserId,
                     sessionId: session.RemoteSessionId);
 
                 logger.LogInformation(

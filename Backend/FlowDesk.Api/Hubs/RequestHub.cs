@@ -91,13 +91,28 @@ public class RequestHub(ILogger<RequestHub> logger, IMediator mediator) : Hub
             sessionId);
     }
 
-    public async Task AdminJoinSession(int sessionId)
+    public async Task AgentJoinSession(int sessionId)
     {
         var userId = GetUserIdFromContext();
 
         logger.LogInformation(
-            "Admin joining session: SessionId={SessionId} UserId={UserId}",
+            "Agent joining session (awaiting support): SessionId={SessionId} UserId={UserId}",
             sessionId, userId);
+
+        await Groups.AddToGroupAsync(Context.ConnectionId, $"session-{sessionId}-agent");
+
+        logger.LogInformation(
+            "Connection {ConnectionId} joined agent session group for SessionId={SessionId}",
+            Context.ConnectionId, sessionId);
+    }
+
+    public async Task AdminJoinSession(int sessionId, int targetUserId)
+    {
+        var userId = GetUserIdFromContext();
+
+        logger.LogInformation(
+            "Admin joining session: SessionId={SessionId} UserId={UserId} TargetUserId={TargetUserId}",
+            sessionId, userId, targetUserId);
 
         await Groups.AddToGroupAsync(Context.ConnectionId, $"session-{sessionId}-admin");
         await Groups.AddToGroupAsync(Context.ConnectionId, $"session-{sessionId}");
@@ -105,6 +120,13 @@ public class RequestHub(ILogger<RequestHub> logger, IMediator mediator) : Hub
         logger.LogInformation(
             "Connection {ConnectionId} joined admin session groups for SessionId={SessionId}",
             Context.ConnectionId, sessionId);
+
+        await Clients.Group($"user-{targetUserId}")
+            .SendAsync("SupportReady", new { sessionId });
+
+        logger.LogInformation(
+            "Notified target user that support is ready: SessionId={SessionId} TargetUserId={TargetUserId}",
+            sessionId, targetUserId);
     }
 
     public async Task SendWebRTCOffer(int sessionId, string sdpOffer)
