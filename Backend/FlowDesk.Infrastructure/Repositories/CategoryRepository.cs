@@ -52,6 +52,10 @@ namespace FlowDesk.Infrastructure.Repositories
             return (totalPages, categories);
         }
 
+        public async Task<List<Domain.Entities.Category>> GetAllActiveAsync()
+        {
+            return await _context.Categories.Where(c => c.IsActive).ToListAsync();
+        }
         public async Task<Domain.Entities.Category?> GetByIdAsync(int categoryId)
         {
             return await _context.Categories.FirstOrDefaultAsync(c => c.CategoryId == categoryId);
