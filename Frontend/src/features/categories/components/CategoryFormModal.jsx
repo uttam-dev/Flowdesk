@@ -72,7 +72,7 @@ function CategoryFormModalInner({
   return (
     <Modal
       open
-      onClose={saving ? () => {} : onClose}
+      onClose={saving ? () => { } : onClose}
       title={title}
       closeOnOverlayClick={!saving}
       closeOnEscape={!saving}
@@ -107,25 +107,28 @@ function CategoryFormModalInner({
             {combinedError}
           </p>
         ) : null}
-        <Input
-          id="categoryName"
-          label={
-            <>
-              Category name
-              <span className="text-red-500 ml-1">*</span>
-            </>
-          }
-          value={name}
-          onChange={(ev) => {
-            setName(ev.target.value);
-            if (fieldError) setFieldError(null);
-            if (error) setError(null);
-          }}
-          disabled={saving}
-          maxLength={100}
-          autoComplete="off"
-          error={fieldError}
-        />
+        <div className="flex flex-col gap-1">
+          <Input
+            id="categoryName"
+            label={
+              <>
+                Category name
+                <span className="text-red-500 ml-1">*</span>
+              </>
+            }
+            value={name}
+            onChange={(ev) => {
+              setName(ev.target.value);
+              if (fieldError) setFieldError(null);
+              if (error) setError(null);
+            }}
+            disabled={saving}
+            maxLength={100}
+            autoComplete="off"
+            error={fieldError}
+          />
+          <p className="text-xs text-gray-500">{name.trim().length}/100</p>
+        </div>
         <div className="flex flex-col gap-1.5">
           <label
             htmlFor="approval"

@@ -35,14 +35,14 @@ export function RequestDetails({ request }) {
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-medium uppercase tracking-wide text-gray-500 wrap-break-word">
             #{request.requestNumber || request.requestId}
           </p>
-          <h2 className="mt-1 text-xl font-semibold text-gray-900">{request.title}</h2>
-          <p className="mt-2 text-sm text-gray-600">{request.description || '—'}</p>
+          <h2 className="mt-1 text-xl font-semibold text-gray-900 wrap-break-word">{request.title}</h2>
+          <p className="mt-2 text-sm text-gray-600 wrap-break-word">{request.description || '—'}</p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex shrink-0 flex-wrap gap-2">
           <Badge className={priorityBadgeClass(request.priority)}>
             {priorityLabel(request.priority)}
           </Badge>
@@ -55,19 +55,19 @@ export function RequestDetails({ request }) {
       <dl className="mt-6 grid gap-4 border-t border-gray-100 pt-4 text-sm sm:grid-cols-2 lg:grid-cols-3">
         <div>
           <dt className="font-medium text-gray-500">Category</dt>
-          <dd className="mt-0.5 text-gray-900">{request.categoryName || '—'}</dd>
+          <dd className="mt-0.5 text-gray-900 wrap-break-word">{request.categoryName || '—'}</dd>
         </div>
         <div>
           <dt className="font-medium text-gray-500">Assigned to</dt>
-          <dd className="mt-0.5 text-gray-900">{request.assignedToName || '—'}</dd>
+          <dd className="mt-0.5 text-gray-900 wrap-break-word">{request.assignedToName || '—'}</dd>
         </div>
         <div>
           <dt className="font-medium text-gray-500">Approved by</dt>
-          <dd className="mt-0.5 text-gray-900">{request.approvalName || '—'}</dd>
+          <dd className="mt-0.5 text-gray-900 wrap-break-word">{request.approvalName || '—'}</dd>
         </div>
         <div>
           <dt className="font-medium text-gray-500">Created by</dt>
-          <dd className="mt-0.5 text-gray-900">{request.fullName || '—'}</dd>
+          <dd className="mt-0.5 text-gray-900 wrap-break-word">{request.fullName || '—'}</dd>
         </div>
         <div>
           <dt className="font-medium text-gray-500">Created</dt>
@@ -94,7 +94,7 @@ export function RequestDetails({ request }) {
       </dl>
 
       {request.isEscalated ? (
-        <div className="mt-4 rounded-lg border border-orange-200 bg-orange-50 px-3 py-2 text-sm text-orange-800">
+        <div className="mt-4 rounded-lg border border-orange-200 bg-orange-50 px-3 py-2 text-sm text-orange-800 wrap-break-word">
           <p className="font-medium">🚨 This request has been escalated</p>
           <p className="mt-1">Reason: {request.escalationReason || '—'}</p>
           <p>Escalated by: {request.escalatedByName || '—'}</p>
