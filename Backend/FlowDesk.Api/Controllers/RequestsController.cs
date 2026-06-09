@@ -185,7 +185,7 @@ namespace FlowDesk.Api.Controllers
         }
 
         //// POST: api/requests/{id}/comments
-        [Authorize(policy: "CanCreateRequestComment")]
+        [Authorize]
         [HttpPost("{requestId}/comments")]
         public async Task<IActionResult> AddComment(int requestId, AddRequestCommentDto dto)
         {
