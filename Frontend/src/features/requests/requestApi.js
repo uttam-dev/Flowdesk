@@ -313,6 +313,17 @@ export async function fetchRequestCommentsApi(id) {
 }
 
 /**
+ * @param {string|number} id
+ * @param {string} commentText
+ */
+export async function addRequestCommentApi(id, commentText) {
+  const { data } = await apiClient.post(`${BASE}/${id}/comments`, {
+    commentText: commentText.trim(),
+  });
+  return mapCommentRow(data?.data ?? data);
+}
+
+/**
  * @param {{ categoryId: number, title: string, description: string, priority: number }} body
  */
 export async function createRequestApi(body) {
