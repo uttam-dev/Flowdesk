@@ -10,6 +10,7 @@ import {
   parseApiError,
   rejectRequestApi,
   updateRequestStatusApi,
+  addRequestCommentApi,
 } from "./requestApi.js";
 
 const initialState = {
@@ -79,6 +80,17 @@ export const fetchRequestComments = createAsyncThunk(
   async (id, { rejectWithValue }) => {
     try {
       return await fetchRequestCommentsApi(id);
+    } catch (err) {
+      return rejectWithValue(parseApiError(err));
+    }
+  },
+);
+
+export const addRequestComment = createAsyncThunk(
+  "requests/addComment",
+  async ({ id, commentText }, { rejectWithValue }) => {
+    try {
+      return await addRequestCommentApi(id, commentText);
     } catch (err) {
       return rejectWithValue(parseApiError(err));
     }
@@ -230,6 +242,7 @@ const requestSlice = createSlice({
             rejectRequest.pending.type,
             assignRequest.pending.type,
             updateRequestStatus.pending.type,
+            addRequestComment.pending.type,
           ].includes(action.type),
         (state) => {
           state.mutationLoading = true;
@@ -248,6 +261,8 @@ const requestSlice = createSlice({
             assignRequest.rejected.type,
             updateRequestStatus.fulfilled.type,
             updateRequestStatus.rejected.type,
+            addRequestComment.fulfilled.type,
+            addRequestComment.rejected.type,
           ].includes(action.type),
         (state) => {
           state.mutationLoading = false;
