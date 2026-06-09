@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -16,6 +16,7 @@ import {
   fetchRequestDetail,
   fetchRequests,
   rejectRequest,
+  addRequestComment,
   selectRequestComments,
   selectRequestCommentsLoading,
   selectRequestDetail,
@@ -131,7 +132,47 @@ function fmtCommentDate(v) {
   }
 }
 
-function CommentsSection({ comments = [], loading }) {
+function CommentsSection({ comments = [], loading, onAddComment, addingComment }) {
+  const [text, setText] = useState("");
+  const textareaRef = useRef(null);
+
+  const adjustHeight = () => {
+    const el = textareaRef.current;
+    if (el) {
+      el.style.height = "auto";
+      el.style.height = `${el.scrollHeight}px`;
+    }
+  };
+
+  const submitComment = () => {
+    if (!text.trim() || addingComment) return;
+    onAddComment(text).then((success) => {
+      if (success) {
+        setText("");
+        if (textareaRef.current) {
+          textareaRef.current.style.height = "auto";
+        }
+      }
+    });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    submitComment();
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      submitComment();
+    }
+  };
+
+  const handleChange = (e) => {
+    setText(e.target.value);
+    adjustHeight();
+  };
+
   if (loading === "pending") {
     return (
       <div className="rounded-xl border border-gray-200 bg-white p-6 text-center text-sm text-gray-500 shadow-sm">
@@ -141,7 +182,7 @@ function CommentsSection({ comments = [], loading }) {
   }
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
+    <div className="rounded-xl border border-gray-200 bg-white shadow-sm flex flex-col h-full max-h-[600px]">
       <div className="border-b border-gray-100 px-5 py-3.5">
         <h3 className="text-sm font-semibold text-gray-900">
           Comments
@@ -153,7 +194,7 @@ function CommentsSection({ comments = [], loading }) {
         </h3>
       </div>
 
-      <div className="divide-y divide-gray-50 px-5 py-2">
+      <div className="divide-y divide-gray-50 px-5 py-2 overflow-y-auto flex-1">
         {comments.length === 0 ? (
           <p className="py-8 text-center text-sm text-gray-400">
             No comments yet.
@@ -185,9 +226,8 @@ function CommentsSection({ comments = [], loading }) {
 
                 {/* Body */}
                 <div
-                  className={`rounded-lg px-4 py-3 text-sm leading-relaxed text-gray-800 ${
-                    isMine ? "bg-indigo-50" : "bg-gray-50"
-                  }`}
+                  className={`rounded-lg px-4 py-3 text-sm leading-relaxed text-gray-800 ${isMine ? "bg-indigo-50" : "bg-gray-50"
+                    }`}
                 >
                   <p className="whitespace-pre-wrap break-words">
                     {c.commentText}
@@ -197,6 +237,41 @@ function CommentsSection({ comments = [], loading }) {
             );
           })
         )}
+      </div>
+
+      {/* Add comment box */}
+      <div className="border-t border-gray-100 bg-gray-50 p-4 rounded-b-xl">
+        <form onSubmit={handleSubmit} className="flex gap-3 items-start">
+          <div className="flex-1 flex flex-col">
+            <textarea
+              ref={textareaRef}
+              rows={2}
+              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none max-h-32"
+              placeholder="Write a comment..."
+              value={text}
+              onChange={handleChange}
+              onKeyDown={handleKeyDown}
+              disabled={addingComment}
+            />
+            <span className="mt-1 text-right text-[12px] text-gray-400">
+              Ctrl+Enter to send
+            </span>
+          </div>
+          <Button
+            type="submit"
+            variant="primary"
+            className="shrink-0 pt-2 pb-2 h-[42px]"
+            disabled={!text.trim() || addingComment}
+            loading={addingComment}
+          >
+            <span className="flex items-center gap-1.5">
+              <span>Send</span>
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+              </svg>
+            </span>
+          </Button>
+        </form>
       </div>
     </div>
   );
@@ -228,6 +303,7 @@ export function RequestDetailsPage() {
   const [escalationReason, setEscalationReason] = useState("");
   const [escalationError, setEscalationError] = useState("");
   const [escalating, setEscalating] = useState(false);
+  const [addingComment, setAddingComment] = useState(false);
 
   const loadDetail = useCallback(() => {
     if (!id) return;
@@ -286,7 +362,7 @@ export function RequestDetailsPage() {
       }),
     )
       .unwrap()
-      .catch(() => {});
+      .catch(() => { });
   }
 
   function openAction(key) {
@@ -355,6 +431,21 @@ export function RequestDetailsPage() {
       await refreshAll();
     } catch (e) {
       setActionError(String(e));
+    }
+  }
+
+  async function handleAddComment(commentText) {
+    if (!id) return false;
+    setAddingComment(true);
+    try {
+      await dispatch(addRequestComment({ id, commentText })).unwrap();
+      await dispatch(fetchRequestComments(id)).unwrap();
+      return true;
+    } catch (e) {
+      toast.error(String(e) || "Failed to add comment");
+      return false;
+    } finally {
+      setAddingComment(false);
     }
   }
   // ── End existing logic ──────────────────────────────────────────────────────
@@ -551,7 +642,12 @@ export function RequestDetailsPage() {
           {isAdmin ? <AuditTrail requestId={id} /> : null}
 
           {/* Comments */}
-          <CommentsSection comments={comments} loading={commentsLoading} />
+          <CommentsSection
+            comments={comments}
+            loading={commentsLoading}
+            onAddComment={handleAddComment}
+            addingComment={addingComment}
+          />
 
           {/* Escalation history */}
           {detail?.escalationHistory?.length > 0 ? (
@@ -608,7 +704,7 @@ export function RequestDetailsPage() {
 
       <Modal
         open={showEscalateModal}
-        onClose={escalating ? () => {} : closeEscalateModal}
+        onClose={escalating ? () => { } : closeEscalateModal}
         title="Escalate Request"
         closeOnOverlayClick={!escalating}
         closeOnEscape={!escalating}
