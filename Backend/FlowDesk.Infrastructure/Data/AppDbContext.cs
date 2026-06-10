@@ -6,7 +6,7 @@ using System.Text;
 
 namespace FlowDesk.Infrastructure.Data
 {
-    public class AppDbContext(DbContextOptions<AppDbContext> options ):DbContext(options)
+    public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
     {
         public DbSet<User> Users { get; set; }
         public DbSet<Role> Roles { get; set; }
@@ -17,6 +17,7 @@ namespace FlowDesk.Infrastructure.Data
         public DbSet<EscalationHistory> EscalationHistories { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<MasterRemarks> MasterRemarks { get; set; }
+        public DbSet<RemoteSession> RemoteSessions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
