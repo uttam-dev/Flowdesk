@@ -29,6 +29,7 @@ namespace FlowDesk.Infrastructure
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IRequestsService, RequestsService>();
             services.AddScoped<IFileParser, FileParser>();
+            services.AddScoped<IRemoteSessionRepository, RemoteSessionRepository>();
 
             services.Configure<GroqSettings>(configuration.GetSection(GroqSettings.SectionName));
 
