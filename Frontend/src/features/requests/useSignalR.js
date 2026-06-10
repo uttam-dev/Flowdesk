@@ -66,7 +66,7 @@ export function useSignalR() {
    */
   const handleRequestCreated = useCallback(
     (payload) => {
-      console.info('[SignalR] RequestUpdated (created):', payload)
+      // console.info('[SignalR] RequestUpdated (created):', payload)
       dispatch(fetchRequests())
 
       const reqId = payload.requestNumber ?? payload.RequestNumber ?? payload.requestId ?? payload.RequestId
