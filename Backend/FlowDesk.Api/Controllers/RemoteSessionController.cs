@@ -19,7 +19,7 @@ public class RemoteSessionController(IMediator _mediator) : ControllerBase
 
 
     [HttpPost]
-    [Authorize(Roles = "Support,Admin")]
+    [Authorize(Roles = "Support")]
     public async Task<ActionResult> Initiate(
         [FromBody] InitiateRemoteSessionDto dto,
         CancellationToken ct)
@@ -36,7 +36,7 @@ public class RemoteSessionController(IMediator _mediator) : ControllerBase
 
 
     [HttpPut("{sessionId:int}/respond")]
-    [Authorize(Roles = "Employee,Manager,Admin")]
+    [Authorize(Roles = "Employee,Manager")]
     public async Task<ActionResult> Respond(
         int sessionId,
         [FromBody] RespondToRemoteSessionDto dto,
@@ -61,7 +61,7 @@ public class RemoteSessionController(IMediator _mediator) : ControllerBase
     }
 
     [HttpPut("{sessionId:int}/end")]
-    [Authorize(Roles = "Support,Admin")]
+    [Authorize(Roles = "Support")]
     public async Task<ActionResult> End(
         int sessionId,
         [FromBody] EndRemoteSessionDto dto,
@@ -83,7 +83,7 @@ public class RemoteSessionController(IMediator _mediator) : ControllerBase
         });
     }
 
-
+    
     [HttpGet("{sessionId:int}")]
     public async Task<ActionResult> GetById(
         int sessionId,
