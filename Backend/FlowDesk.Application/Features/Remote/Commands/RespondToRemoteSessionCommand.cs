@@ -5,6 +5,7 @@ using FlowDesk.Domain.Entities;
 using FlowDesk.Domain.Enums;
 using FlowDesk.Domain.Interfaces;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace FlowDesk.Application.Features.Remote.Commands
 {
@@ -19,59 +20,104 @@ namespace FlowDesk.Application.Features.Remote.Commands
 
     public class RespondToRemoteSessionCommandHandler(
             IRemoteSessionRepository _remoteSessions,
-            IRealtimeService _realtime)
+            IRealtimeService _realtime,
+            ILogger<RespondToRemoteSessionCommandHandler> logger)
         : IRequestHandler<RespondToRemoteSessionCommand, RemoteSessionDto>
     {
-
         public async Task<RemoteSessionDto> Handle(
             RespondToRemoteSessionCommand cmd,
             CancellationToken ct)
         {
-            var session = await _remoteSessions.GetByIdAsync(cmd.SessionId, ct)
-                ?? throw new NotFoundException($"Remote session {cmd.SessionId} not found.");
+            logger.LogInformation("Starting {Operation} with {@Command}",
+                nameof(RespondToRemoteSessionCommand), cmd);
 
-            // Only the intended target can respond
+            logger.LogInformation("Fetching RemoteSession with SessionId {SessionId}", cmd.SessionId);
+
+            var session = await _remoteSessions.GetByIdAsync(cmd.SessionId, ct);
+
+            if (session == null)
+            {
+                logger.LogWarning("RemoteSession not found with SessionId {SessionId}", cmd.SessionId);
+                throw new NotFoundException($"Remote session {cmd.SessionId} not found.");
+            }
+
             if (session.TargetUserId != cmd.RespondingUserId)
+            {
+                logger.LogWarning(
+                    "Unauthorized response attempt by UserId {UserId} for SessionId {SessionId}",
+                    cmd.RespondingUserId, cmd.SessionId);
+
                 throw new ForbiddenException("You are not the target of this remote session request.");
+            }
 
             if (session.Status != RemoteSessionStatusEnum.Pending)
+            {
+                logger.LogWarning(
+                    "Invalid response attempt for SessionId {SessionId} with Status {Status}",
+                    cmd.SessionId, session.Status);
+
                 throw new BadRequestException($"Session is already {session.Status}. Cannot respond again.");
+            }
 
             if (cmd.Accepted)
             {
-                // Accepted — WebRTC handshake will start via SignalR after this
+                logger.LogInformation(
+                    "Accepting RemoteSession with SessionId {SessionId} by UserId {UserId}",
+                    cmd.SessionId, cmd.RespondingUserId);
+
                 session.Status = RemoteSessionStatusEnum.Accepted;
                 session.UpdatedAt = DateTime.UtcNow;
 
                 await _remoteSessions.UpdateAsync(session, ct);
 
-                // Tell the support user the target accepted — triggers WebRTC offer from agent
+                logger.LogInformation(
+                    "RemoteSession accepted for SessionId {SessionId}",
+                    session.RemoteSessionId);
+
                 await _realtime.NotifyRemoteSessionAcceptedAsync(
                     supportUserId: session.InitiatedByUserId,
                     sessionId: session.RemoteSessionId);
+
+                logger.LogInformation(
+                    "Acceptance notification sent for SessionId {SessionId} to SupportUserId {SupportUserId}",
+                    session.RemoteSessionId, session.InitiatedByUserId);
             }
             else
             {
-                // Rejected
+                logger.LogInformation(
+                    "Rejecting RemoteSession with SessionId {SessionId} by UserId {UserId}",
+                    cmd.SessionId, cmd.RespondingUserId);
+
                 session.Status = RemoteSessionStatusEnum.Rejected;
                 session.RejectionReason = cmd.RejectionReason;
                 session.UpdatedAt = DateTime.UtcNow;
 
                 await _remoteSessions.UpdateAsync(session, ct);
 
-                // Notify support user
+                logger.LogInformation(
+                    "RemoteSession rejected for SessionId {SessionId} with Reason {Reason}",
+                    session.RemoteSessionId, cmd.RejectionReason);
+
                 await _realtime.NotifyRemoteSessionRejectedAsync(
                     supportUserId: session.InitiatedByUserId,
                     sessionId: session.RemoteSessionId,
                     rejectionReason: cmd.RejectionReason);
+
+                logger.LogInformation(
+                    "Rejection notification sent for SessionId {SessionId} to SupportUserId {SupportUserId}",
+                    session.RemoteSessionId, session.InitiatedByUserId);
             }
+
+            logger.LogInformation(
+                "Completed {Operation} for SessionId {SessionId}",
+                nameof(RespondToRemoteSessionCommand), session.RemoteSessionId);
 
             return MapToDto(session);
         }
 
         private static RemoteSessionDto MapToDto(RemoteSession s) => new()
         {
-            Id = s.RemoteSessionId,
+            RemoteSessionId = s.RemoteSessionId,
             RequestId = s.RequestId,
             InitiatedByUserId = s.InitiatedByUserId,
             InitiatedByName = s.InitiatedBy?.FullName ?? string.Empty,

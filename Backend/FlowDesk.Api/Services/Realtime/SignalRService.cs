@@ -318,12 +318,16 @@ public class SignalRService(
     }
 
     public async Task NotifyRemoteSessionInitiatedAsync(
-    int targetUserId,
-    int sessionId,
-    int requestId,
-    string supportName,
-    CancellationToken ct = default)
+        int targetUserId,
+        int sessionId,
+        int requestId,
+        string supportName,
+        CancellationToken ct = default)
     {
+        _logger.LogInformation(
+            "Broadcasting RemoteSessionInitiated: SessionId={SessionId} RequestId={RequestId} TargetUserId={TargetUserId} SupportName={SupportName}",
+            sessionId, requestId, targetUserId, supportName);
+
         await _hub.Clients
             .Group(targetUserId.ToString())
             .SendAsync("RemoteSessionInitiated", new
@@ -333,17 +337,31 @@ public class SignalRService(
                 supportName,
                 message = $"{supportName} is requesting remote access to your machine."
             }, ct);
+
+        _logger.LogInformation(
+            "RemoteSessionInitiated broadcast complete: SessionId={SessionId}",
+            sessionId);
     }
+
 
     public async Task NotifyRemoteSessionAcceptedAsync(
         int supportUserId,
         int sessionId,
         CancellationToken ct = default)
     {
+        _logger.LogInformation(
+            "Broadcasting RemoteSessionAccepted: SessionId={SessionId} SupportUserId={SupportUserId}",
+            sessionId, supportUserId);
+
         await _hub.Clients
             .Group(supportUserId.ToString())
             .SendAsync("RemoteSessionAccepted", new { sessionId }, ct);
+
+        _logger.LogInformation(
+            "RemoteSessionAccepted broadcast complete: SessionId={SessionId}",
+            sessionId);
     }
+
 
     public async Task NotifyRemoteSessionRejectedAsync(
         int supportUserId,
@@ -351,10 +369,19 @@ public class SignalRService(
         string? rejectionReason,
         CancellationToken ct = default)
     {
+        _logger.LogWarning(
+            "Broadcasting RemoteSessionRejected: SessionId={SessionId} SupportUserId={SupportUserId} Reason={Reason}",
+            sessionId, supportUserId, rejectionReason);
+
         await _hub.Clients
             .Group(supportUserId.ToString())
             .SendAsync("RemoteSessionRejected", new { sessionId, rejectionReason }, ct);
+
+        _logger.LogInformation(
+            "RemoteSessionRejected broadcast complete: SessionId={SessionId}",
+            sessionId);
     }
+
 
     public async Task NotifyRemoteSessionEndedAsync(
         int targetUserId,
@@ -363,8 +390,16 @@ public class SignalRService(
         bool resolved,
         CancellationToken ct = default)
     {
+        _logger.LogInformation(
+            "Broadcasting RemoteSessionEnded: SessionId={SessionId} TargetUserId={TargetUserId} SupportUserId={SupportUserId} Resolved={Resolved}",
+            sessionId, targetUserId, supportUserId, resolved);
+
         await _hub.Clients
             .Groups(targetUserId.ToString(), supportUserId.ToString())
             .SendAsync("RemoteSessionEnded", new { sessionId, resolved }, ct);
+
+        _logger.LogInformation(
+            "RemoteSessionEnded broadcast complete: SessionId={SessionId}",
+            sessionId);
     }
 }

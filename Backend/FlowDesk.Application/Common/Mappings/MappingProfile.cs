@@ -59,7 +59,7 @@ namespace FlowDesk.Application.Common.Mappings
 
             //Remote session
             CreateMap<RemoteSession, RemoteSessionDto>()
-                    .ForMember(dest => dest.Id,
+                    .ForMember(dest => dest.RemoteSessionId,
                         opt => opt.MapFrom(src => src.RemoteSessionId))
 
                     .ForMember(dest => dest.InitiatedByName,
@@ -76,14 +76,14 @@ namespace FlowDesk.Application.Common.Mappings
                         opt => opt.MapFrom(src => src.Status.ToString()));
 
             CreateMap<RemoteSession, RemoteSessionDto>()
-    .ForMember(d => d.Id,
+    .ForMember(d => d.RemoteSessionId,
         o => o.MapFrom(s => s.RemoteSessionId))
 
     .ForMember(d => d.InitiatedByName,
-        o => o.MapFrom(s => s.Request.AssignedUser.FullName))
+        o => o.MapFrom(s => s.Request.AssignedUser!.FullName))
 
     .ForMember(d => d.TargetUserName,
-        o => o.MapFrom(s => s.Request.Employee.FullName))
+        o => o.MapFrom(s => s.Request.Employee!.FullName))
 
     .ForMember(d => d.Status,
         o => o.MapFrom(s => s.Status.ToString()));

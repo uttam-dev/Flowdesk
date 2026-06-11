@@ -4,7 +4,7 @@ namespace FlowDesk.Application.Features.Remote.DTOs
 {
     public class RemoteSessionDto
     {
-        public int Id { get; set; }
+        public int RemoteSessionId { get; set; }
         public int RequestId { get; set; }
 
         public int InitiatedByUserId { get; set; }
