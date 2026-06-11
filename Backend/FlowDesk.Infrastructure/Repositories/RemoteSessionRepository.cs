@@ -66,9 +66,11 @@ namespace FlowDesk.Infrastructure.Repositories
                     ct);
         }
 
-        public async Task AddAsync(RemoteSession session, CancellationToken ct = default)
+        public async Task<RemoteSession> AddAsync(RemoteSession session, CancellationToken ct = default)
         {
             await _context.RemoteSessions.AddAsync(session, ct);
+            await _context.SaveChangesAsync();
+            return session;
         }
 
         public Task UpdateAsync(RemoteSession session, CancellationToken ct = default)
