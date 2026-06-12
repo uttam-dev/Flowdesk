@@ -59,34 +59,38 @@ namespace FlowDesk.Application.Common.Mappings
 
             //Remote session
             CreateMap<RemoteSession, RemoteSessionDto>()
-                    .ForMember(dest => dest.RemoteSessionId,
-                        opt => opt.MapFrom(src => src.RemoteSessionId))
+                         .ForMember(d => d.RemoteSessionId,
+                             o => o.MapFrom(s => s.RemoteSessionId))
 
-                    .ForMember(dest => dest.InitiatedByName,
-                        opt => opt.MapFrom(src => src.InitiatedBy != null
-                            ? src.InitiatedBy.FullName
-                            : string.Empty))
+                         .ForMember(d => d.RequestId,
+                             o => o.MapFrom(s => s.RequestId))
 
-                    .ForMember(dest => dest.TargetUserName,
-                        opt => opt.MapFrom(src => src.TargetUser != null
-                            ? src.TargetUser.FullName
-                            : string.Empty))
+                         .ForMember(d => d.InitiatedByUserId,
+                             o => o.MapFrom(s => s.InitiatedByUserId))
 
-                    .ForMember(dest => dest.Status,
-                        opt => opt.MapFrom(src => src.Status.ToString()));
+                         .ForMember(d => d.TargetUserId,
+                             o => o.MapFrom(s => s.TargetUserId))
 
-            CreateMap<RemoteSession, RemoteSessionDto>()
-    .ForMember(d => d.RemoteSessionId,
-        o => o.MapFrom(s => s.RemoteSessionId))
+                         // Names (SAFE null handling)
+                         .ForMember(d => d.InitiatedByName,
+                             o => o.MapFrom(s =>
+                                 s.InitiatedBy != null
+                                     ? s.InitiatedBy.FullName
+                                     : s.Request != null && s.Request.AssignedUser != null
+                                         ? s.Request.AssignedUser.FullName
+                                         : string.Empty))
 
-    .ForMember(d => d.InitiatedByName,
-        o => o.MapFrom(s => s.Request.AssignedUser!.FullName))
+                         .ForMember(d => d.TargetUserName,
+                             o => o.MapFrom(s =>
+                                 s.TargetUser != null
+                                     ? s.TargetUser.FullName
+                                     : s.Request != null && s.Request.Employee != null
+                                         ? s.Request.Employee.FullName
+                                         : string.Empty))
 
-    .ForMember(d => d.TargetUserName,
-        o => o.MapFrom(s => s.Request.Employee!.FullName))
-
-    .ForMember(d => d.Status,
-        o => o.MapFrom(s => s.Status.ToString()));
+                         // Enum → string
+                         .ForMember(d => d.Status,
+                             o => o.MapFrom(s => s.Status.ToString()));
         }
     }
 }

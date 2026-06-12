@@ -6,6 +6,7 @@ using FlowDesk.Domain.Enums;
 using FlowDesk.Domain.Interfaces;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using System.Text.Json;
 
 namespace FlowDesk.Application.Features.Remote.Commands;
 
@@ -81,9 +82,10 @@ public class InitiateRemoteSessionCommandHandler(
         };
 
         var createdSession = await _remoteSessions.AddAsync(session, ct);
+    
 
         logger.LogInformation("Remote session created with SessionId {SessionId} for RequestId {RequestId}",
-            createdSession.RemoteSessionId, createdSession.RequestId);
+            createdSession!.RemoteSessionId, createdSession.RequestId);
 
         // 4. Notify user
         logger.LogInformation("Sending real-time notification to TargetUserId {TargetUserId} for SessionId {SessionId}",
