@@ -329,7 +329,7 @@ public class SignalRService(
             sessionId, requestId, targetUserId, supportName);
 
         await _hub.Clients
-            .Group(targetUserId.ToString())
+            .Group($"user-{targetUserId}")
             .SendAsync("RemoteSessionInitiated", new
             {
                 sessionId,
@@ -354,7 +354,7 @@ public class SignalRService(
             sessionId, supportUserId);
 
         await _hub.Clients
-            .Group(supportUserId.ToString())
+            .Group($"user-{supportUserId}")
             .SendAsync("RemoteSessionAccepted", new { sessionId }, ct);
 
         _logger.LogInformation(
@@ -374,7 +374,7 @@ public class SignalRService(
             sessionId, supportUserId, rejectionReason);
 
         await _hub.Clients
-            .Group(supportUserId.ToString())
+            .Group($"user-{supportUserId}")
             .SendAsync("RemoteSessionRejected", new { sessionId, rejectionReason }, ct);
 
         _logger.LogInformation(
@@ -395,7 +395,7 @@ public class SignalRService(
             sessionId, targetUserId, supportUserId, resolved);
 
         await _hub.Clients
-            .Groups(targetUserId.ToString(), supportUserId.ToString())
+            .Groups($"user-{targetUserId}", $"user-{supportUserId}")
             .SendAsync("RemoteSessionEnded", new { sessionId, resolved }, ct);
 
         _logger.LogInformation(
