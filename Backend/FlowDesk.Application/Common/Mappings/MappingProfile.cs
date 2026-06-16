@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using FlowDesk.Application.Features.Categories.DTOs;
+using FlowDesk.Application.Features.Remote.DTOs;
 using FlowDesk.Application.Features.Requests.DTOs;
 using FlowDesk.Application.Features.Users.DTOs;
 using FlowDesk.Domain.Entities;
@@ -53,9 +54,43 @@ namespace FlowDesk.Application.Common.Mappings
             CreateMap<EscalationHistory, EscalationHistoryDto>()
                         .ForMember(d => d.EscalatedByName,
                             opt => opt.MapFrom(s => s.EscalatedByUser != null ? s.EscalatedByUser.FullName : string.Empty));
-           //Comment
-           CreateMap<Comment, CommentResponseDto>();
+            //Comment
+            CreateMap<Comment, CommentResponseDto>();
 
+            //Remote session
+            CreateMap<RemoteSession, RemoteSessionDto>()
+                         .ForMember(d => d.RemoteSessionId,
+                             o => o.MapFrom(s => s.RemoteSessionId))
+
+                         .ForMember(d => d.RequestId,
+                             o => o.MapFrom(s => s.RequestId))
+
+                         .ForMember(d => d.InitiatedByUserId,
+                             o => o.MapFrom(s => s.InitiatedByUserId))
+
+                         .ForMember(d => d.TargetUserId,
+                             o => o.MapFrom(s => s.TargetUserId))
+
+                         // Names (SAFE null handling)
+                         .ForMember(d => d.InitiatedByName,
+                             o => o.MapFrom(s =>
+                                 s.InitiatedBy != null
+                                     ? s.InitiatedBy.FullName
+                                     : s.Request != null && s.Request.AssignedUser != null
+                                         ? s.Request.AssignedUser.FullName
+                                         : string.Empty))
+
+                         .ForMember(d => d.TargetUserName,
+                             o => o.MapFrom(s =>
+                                 s.TargetUser != null
+                                     ? s.TargetUser.FullName
+                                     : s.Request != null && s.Request.Employee != null
+                                         ? s.Request.Employee.FullName
+                                         : string.Empty))
+
+                         // Enum → string
+                         .ForMember(d => d.Status,
+                             o => o.MapFrom(s => s.Status.ToString()));
         }
     }
 }

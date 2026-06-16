@@ -6,33 +6,12 @@ using Microsoft.Extensions.Logging;
 
 namespace FlowDesk.Api.Services.Realtime;
 
-/// <summary>
-/// SignalR implementation of <see cref="IRealtimeService"/>.
-/// <para>
-///   Group naming convention used by this service (matches <see cref="RequestHub"/>):
-///   <list type="bullet">
-///     <item><c>user-{userId}</c>  — individual user notification group</item>
-///     <item><c>role-Admin</c>     — all connected Admin users</item>
-///     <item><c>role-Manager</c>   — all connected Manager users</item>
-///     <item><c>role-Support</c>   — all connected Support users</item>
-///   </list>
-///   All broadcast methods are fire-and-forget from the caller's perspective
-///   (<c>Task.WhenAll</c> is awaited internally, but failures are NOT propagated
-///   to the command handler — real-time is best-effort by design).
-/// </para>
-/// </summary>
 public class SignalRService(
     IHubContext<RequestHub> _hub,
     ILogger<SignalRService> _logger,
     IRequestRepository _repository) : IRealtimeService
 {
-    // ── Shared payload factory ─────────────────────────────────────────────────
 
-    /// <summary>
-    /// Builds the canonical notification payload sent over the wire to all clients.
-    /// Includes both <c>RequestNumber</c> (user-friendly) and <c>RequestId</c>
-    /// (internal PK) so frontends can safely migrate without breaking changes.
-    /// </summary>
     private static object BuildPayload(
         int requestId,
         string requestNumber,
@@ -40,14 +19,13 @@ public class SignalRService(
         int? triggeredById = null) =>
         new
         {
-            RequestId     = requestId,
+            RequestId = requestId,
             RequestNumber = requestNumber,
-            Action        = action,
+            Action = action,
             TriggeredById = triggeredById,
-            Timestamp     = DateTime.UtcNow
+            Timestamp = DateTime.UtcNow
         };
 
-    // ── Helper: fetch RequestNumber by PK ──────────────────────────────────────
 
     private async Task<string> GetRequestNumberAsync(int requestId)
     {
@@ -55,14 +33,6 @@ public class SignalRService(
         return number ?? string.Empty;
     }
 
-    // ── Helper: send to a deduped set of user groups + optional role groups ────
-
-    /// <summary>
-    /// Sends <paramref name="eventName"/> with <paramref name="payload"/> to every
-    /// non-null user ID in <paramref name="userIds"/> (deduped) and every entry
-    /// in <paramref name="roleGroups"/>.  All sends run concurrently via
-    /// <c>Task.WhenAll</c>.
-    /// </summary>
     private async Task BroadcastAsync(
         string eventName,
         object payload,
@@ -139,11 +109,11 @@ public class SignalRService(
         var requestNumber = await GetRequestNumberAsync(requestId);
         var payload = new
         {
-            RequestId     = requestId,
+            RequestId = requestId,
             RequestNumber = requestNumber,
-            NewStatus     = newStatus,
-            UpdatedById   = updatedById,
-            UpdatedAt     = DateTime.UtcNow
+            NewStatus = newStatus,
+            UpdatedById = updatedById,
+            UpdatedAt = DateTime.UtcNow
         };
 
         _logger.LogInformation(
@@ -175,11 +145,7 @@ public class SignalRService(
             "RequestStatusUpdated broadcast complete for RequestId={RequestId}", requestId);
     }
 
-    /// <inheritdoc/>
-    /// <remarks>
-    /// BUG FIX: The group is <c>"role-Support"</c> (matching <see cref="RequestHub"/>
-    /// group registration) — NOT the bare string <c>"Support"</c>.
-    /// </remarks>
+
     public async Task NotifyRequestAssignedAsync(
         int requestId,
         int assignedToId,
@@ -190,11 +156,11 @@ public class SignalRService(
         var requestNumber = await GetRequestNumberAsync(requestId);
         var payload = new
         {
-            RequestId      = requestId,
-            RequestNumber  = requestNumber,
-            AssignedToId   = assignedToId,
+            RequestId = requestId,
+            RequestNumber = requestNumber,
+            AssignedToId = assignedToId,
             AssignedToName = assignedToName,
-            AssignedAt     = DateTime.UtcNow
+            AssignedAt = DateTime.UtcNow
         };
 
         _logger.LogInformation(
@@ -246,7 +212,7 @@ public class SignalRService(
         await BroadcastAsync(
             "RequestStatusUpdated",
             payload,
-            userIds:    [employeeId, managerId],
+            userIds: [employeeId, managerId],
             roleGroups: "role-Admin");
 
         _logger.LogInformation(
@@ -270,7 +236,7 @@ public class SignalRService(
         await BroadcastAsync(
             "RequestStatusUpdated",
             payload,
-            userIds:    [employeeId, managerId],
+            userIds: [employeeId, managerId],
             roleGroups: "role-Admin");
 
         _logger.LogInformation(
@@ -294,7 +260,7 @@ public class SignalRService(
         await BroadcastAsync(
             "RequestStatusUpdated",
             payload,
-            userIds:    [employeeId, managerId, supportId],
+            userIds: [employeeId, managerId, supportId],
             roleGroups: "role-Admin");
 
         _logger.LogInformation(
@@ -318,7 +284,7 @@ public class SignalRService(
         await BroadcastAsync(
             "RequestStatusUpdated",
             payload,
-            userIds:    [employeeId, managerId, supportId],
+            userIds: [employeeId, managerId, supportId],
             roleGroups: "role-Admin");
 
         _logger.LogInformation(
@@ -344,10 +310,101 @@ public class SignalRService(
         await BroadcastAsync(
             "RequestStatusUpdated",
             payload,
-            userIds:    [employeeId, managerId, assignedToId],
+            userIds: [employeeId, managerId, assignedToId],
             roleGroups: "role-Admin");
 
         _logger.LogInformation(
             "RequestEscalated broadcast complete for RequestId={RequestId}", requestId);
+    }
+
+    public async Task NotifyRemoteSessionInitiatedAsync(
+        int targetUserId,
+        int sessionId,
+        int requestId,
+        string supportName,
+        CancellationToken ct = default)
+    {
+        _logger.LogInformation(
+            "Broadcasting RemoteSessionInitiated: SessionId={SessionId} RequestId={RequestId} TargetUserId={TargetUserId} SupportName={SupportName}",
+            sessionId, requestId, targetUserId, supportName);
+
+        await _hub.Clients
+            .Group($"user-{targetUserId}")
+            .SendAsync("RemoteSessionInitiated", new
+            {
+                sessionId,
+                requestId,
+                supportName,
+                message = $"{supportName} is requesting remote access to your machine."
+            }, ct);
+
+        _logger.LogInformation(
+            "RemoteSessionInitiated broadcast complete: SessionId={SessionId}",
+            sessionId);
+    }
+
+
+    public async Task NotifyRemoteSessionAcceptedAsync(
+        int supportUserId,
+        int targetUserId,
+        int sessionId,
+        CancellationToken ct = default)
+    {
+        _logger.LogInformation(
+            "Broadcasting RemoteSessionAccepted: SessionId={SessionId} SupportUserId={SupportUserId} TargetUserId={TargetUserId}",
+            sessionId, supportUserId, targetUserId);
+
+        var tasks = new List<Task>
+        {
+            _hub.Clients.Group($"user-{supportUserId}").SendAsync("RemoteSessionAccepted", new { sessionId }, ct),
+            _hub.Clients.Group($"user-{targetUserId}").SendAsync("RemoteSessionAccepted", new { sessionId }, ct)
+        };
+
+        await Task.WhenAll(tasks);
+
+        _logger.LogInformation(
+            "RemoteSessionAccepted broadcast complete: SessionId={SessionId}",
+            sessionId);
+    }
+
+
+    public async Task NotifyRemoteSessionRejectedAsync(
+        int supportUserId,
+        int sessionId,
+        string? rejectionReason,
+        CancellationToken ct = default)
+    {
+        _logger.LogWarning(
+            "Broadcasting RemoteSessionRejected: SessionId={SessionId} SupportUserId={SupportUserId} Reason={Reason}",
+            sessionId, supportUserId, rejectionReason);
+
+        await _hub.Clients
+            .Group($"user-{supportUserId}")
+            .SendAsync("RemoteSessionRejected", new { sessionId, rejectionReason }, ct);
+
+        _logger.LogInformation(
+            "RemoteSessionRejected broadcast complete: SessionId={SessionId}",
+            sessionId);
+    }
+
+
+    public async Task NotifyRemoteSessionEndedAsync(
+        int targetUserId,
+        int supportUserId,
+        int sessionId,
+        bool resolved,
+        CancellationToken ct = default)
+    {
+        _logger.LogInformation(
+            "Broadcasting RemoteSessionEnded: SessionId={SessionId} TargetUserId={TargetUserId} SupportUserId={SupportUserId} Resolved={Resolved}",
+            sessionId, targetUserId, supportUserId, resolved);
+
+        await _hub.Clients
+            .Groups($"user-{targetUserId}", $"user-{supportUserId}")
+            .SendAsync("RemoteSessionEnded", new { sessionId, resolved }, ct);
+
+        _logger.LogInformation(
+            "RemoteSessionEnded broadcast complete: SessionId={SessionId}",
+            sessionId);
     }
 }
