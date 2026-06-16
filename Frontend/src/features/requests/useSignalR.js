@@ -66,7 +66,6 @@ export function useSignalR() {
    */
   const handleRequestCreated = useCallback(
     (payload) => {
-      // console.info('[SignalR] RequestUpdated (created):', payload)
       dispatch(fetchRequests())
 
       const reqId = payload.requestNumber ?? payload.RequestNumber ?? payload.requestId ?? payload.RequestId
@@ -96,7 +95,6 @@ export function useSignalR() {
 
   const handleStatusUpdated = useCallback(
     (payload) => {
-      console.info('[SignalR] RequestStatusUpdated:', payload)
       dispatch(fetchRequests())
 
       const action = payload.action ?? payload.Action ?? payload.newStatus ?? payload.NewStatus ?? ''
@@ -138,7 +136,6 @@ export function useSignalR() {
 
   const handleAssigned = useCallback(
     (payload) => {
-      console.info('[SignalR] RequestAssigned:', payload)
       dispatch(fetchRequests())
 
       const reqId   = payload.requestNumber ?? payload.RequestNumber ?? payload.requestId ?? payload.RequestId
