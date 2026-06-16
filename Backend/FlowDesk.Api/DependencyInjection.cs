@@ -102,6 +102,14 @@ namespace FlowDesk.Api
                         if (string.IsNullOrEmpty(token))
                             token = context.Request?.Cookies[configuration["CookieOptions:AccessTokenName"]!]!;
 
+                        // 3️ Fallback to query string (SignalR WebSocket / Electron agent)
+                        if (string.IsNullOrEmpty(token) && context.Request != null)
+                        {
+                            var accessToken = context.Request.Query["access_token"];
+                            if (!string.IsNullOrEmpty(accessToken))
+                                token = accessToken!;
+                        }
+
                         if (!string.IsNullOrEmpty(token))
                             context.Token = token;
 
