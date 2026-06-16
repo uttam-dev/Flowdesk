@@ -1,0 +1,39 @@
+import {
+  setIncomingRequest,
+  setSessionAccepted,
+  setSessionRejected,
+  setSessionActive,
+  setSessionEnded,
+  openViewer,
+  clearSession,
+} from "./remoteSlice";
+
+export function registerListeners(connection, dispatch) {
+  const onInitiated = (payload) => {
+    dispatch(setIncomingRequest(payload));
+  };
+  const onAccepted = (payload) => {
+    dispatch(setSessionAccepted(payload));
+    dispatch(openViewer());
+  };
+  const onRejected = (payload) => dispatch(setSessionRejected(payload));
+  const onStreamReady = () => dispatch(setSessionActive());
+  const onEnded = (payload) => {
+    dispatch(setSessionEnded(payload));
+    dispatch(clearSession());
+  };
+
+  connection.on("RemoteSessionInitiated", onInitiated);
+  connection.on("RemoteSessionAccepted", onAccepted);
+  connection.on("RemoteSessionRejected", onRejected);
+  connection.on("AgentStreamReady", onStreamReady);
+  connection.on("RemoteSessionEnded", onEnded);
+
+  return () => {
+    connection.off("RemoteSessionInitiated", onInitiated);
+    connection.off("RemoteSessionAccepted", onAccepted);
+    connection.off("RemoteSessionRejected", onRejected);
+    connection.off("AgentStreamReady", onStreamReady);
+    connection.off("RemoteSessionEnded", onEnded);
+  };
+}

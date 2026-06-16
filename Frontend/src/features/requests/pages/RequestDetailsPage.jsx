@@ -9,6 +9,16 @@ import { selectRoleNames } from "../../auth/authSlice.js";
 import { AuditTrail } from "../components/AuditTrail.jsx";
 import { RequestActionModal } from "../components/RequestActionModal.jsx";
 import { RequestComments } from "../components/RequestComments.jsx";
+import RemoteAccessRequestModal from "../../remote/components/RemoteAccessRequestModal.jsx";
+import {
+  fetchLatestRemoteSession,
+  fetchRemoteSessionHistory,
+  clearSession,
+  selectCurrentSession,
+  selectSessionHistory,
+  selectSessionStatus,
+} from "../../remote/remoteSlice.js";
+
 import {
   approveRequest,
   assignRequest,
@@ -132,7 +142,12 @@ function fmtCommentDate(v) {
   }
 }
 
-function CommentsSection({ comments = [], loading, onAddComment, addingComment }) {
+function CommentsSection({
+  comments = [],
+  loading,
+  onAddComment,
+  addingComment,
+}) {
   const [text, setText] = useState("");
   const textareaRef = useRef(null);
 
@@ -226,8 +241,9 @@ function CommentsSection({ comments = [], loading, onAddComment, addingComment }
 
                 {/* Body */}
                 <div
-                  className={`rounded-lg px-4 py-3 text-sm leading-relaxed text-gray-800 ${isMine ? "bg-indigo-50" : "bg-gray-50"
-                    }`}
+                  className={`rounded-lg px-4 py-3 text-sm leading-relaxed text-gray-800 ${
+                    isMine ? "bg-indigo-50" : "bg-gray-50"
+                  }`}
                 >
                   <p className="whitespace-pre-wrap break-words">
                     {c.commentText}
@@ -266,8 +282,18 @@ function CommentsSection({ comments = [], loading, onAddComment, addingComment }
           >
             <span className="flex items-center gap-1.5">
               <span>Send</span>
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth="1.5"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"
+                />
               </svg>
             </span>
           </Button>
@@ -304,6 +330,36 @@ export function RequestDetailsPage() {
   const [escalationError, setEscalationError] = useState("");
   const [escalating, setEscalating] = useState(false);
   const [addingComment, setAddingComment] = useState(false);
+
+  const currentSession = useSelector(selectCurrentSession);
+  const sessionHistory = useSelector(selectSessionHistory);
+  const sessionStatus = useSelector(selectSessionStatus);
+
+  const [isRemoteModalOpen, setIsRemoteModalOpen] = useState(false);
+
+  // Fetch latest session when request detail loads
+  useEffect(() => {
+    if (id) {
+      dispatch(fetchLatestRemoteSession(id));
+      dispatch(fetchRemoteSessionHistory(id));
+    }
+    return () => dispatch(clearSession());
+  }, [id, dispatch]);
+
+  // Close modal when session is no longer pending (accepted or rejected)
+  useEffect(() => {
+    if (sessionStatus !== "pending" && sessionStatus !== "idle") {
+      setIsRemoteModalOpen(false);
+    }
+  }, [sessionStatus]);
+
+  // ── Determine visibility of the "Request Remote Access" button ────────────────
+  // Show only to Support role, only when request is InProgress, and no active session
+  const canRequestRemote =
+    hasRole(roles, "Support") &&
+    Number(detail?.status) === REQUEST_STATUS.InProgress &&
+    sessionStatus !== "pending" &&
+    sessionStatus !== "active";
 
   const loadDetail = useCallback(() => {
     if (!id) return;
@@ -362,7 +418,7 @@ export function RequestDetailsPage() {
       }),
     )
       .unwrap()
-      .catch(() => { });
+      .catch(() => {});
   }
 
   function openAction(key) {
@@ -491,6 +547,38 @@ export function RequestDetailsPage() {
               🚨 Escalate Request
             </Button>
           ) : null}
+
+          {canRequestRemote && (
+            <button
+              onClick={() => setIsRemoteModalOpen(true)}
+              className="inline-flex items-center gap-2 rounded-lg bg-yellow-500 px-4 py-2 text-sm font-medium text-white hover:bg-yellow-600 transition-colors"
+            >
+              {/* Monitor icon */}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                />
+              </svg>
+              Request Remote Access
+            </button>
+          )}
+
+          {/* Active session badge — shown while session is live */}
+          {sessionStatus === "active" && (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
+              <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+              Remote Session Active
+            </span>
+          )}
         </div>
       </div>
     ) : null;
@@ -556,211 +644,276 @@ export function RequestDetailsPage() {
   );
 
   return (
-    <div className="space-y-4 pb-10">
-      {/* Back link */}
-      <Link
-        to="/requests"
-        className="inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-800"
-      >
-        <Icon path="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" className="h-4 w-4" />
-        Back to requests
-      </Link>
+    <>
+      <div className="space-y-4 pb-10">
+        {/* Back link */}
+        <Link
+          to="/requests"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-800"
+        >
+          <Icon
+            path="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"
+            className="h-4 w-4"
+          />
+          Back to requests
+        </Link>
 
-      {/* ── Responsive 2-col layout ── */}
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-6">
-        {/* ── LEFT — main content (70%) ── */}
-        <div className="min-w-0 flex-1 space-y-4">
-          {/* Request info card */}
-          <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
-            {/* Header */}
-            <div className="border-b border-gray-100 px-5 py-4">
-              <p className="text-xs font-medium uppercase tracking-wide text-gray-400">
-                #{detail?.requestNumber || detail?.requestId}
-              </p>
-              <h1 className="mt-1 text-xl font-semibold leading-snug text-gray-900">
-                {detail?.title || "—"}
-              </h1>
-              {detail?.description && (
-                <p className="mt-2 text-sm leading-relaxed text-gray-600">
-                  {detail.description}
+        {/* ── Responsive 2-col layout ── */}
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-6">
+          {/* ── LEFT — main content (70%) ── */}
+          <div className="min-w-0 flex-1 space-y-4">
+            {/* Request info card */}
+            <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
+              {/* Header */}
+              <div className="border-b border-gray-100 px-5 py-4">
+                <p className="text-xs font-medium uppercase tracking-wide text-gray-400">
+                  #{detail?.requestNumber || detail?.requestId}
                 </p>
-              )}
+                <h1 className="mt-1 text-xl font-semibold leading-snug text-gray-900">
+                  {detail?.title || "—"}
+                </h1>
+                {detail?.description && (
+                  <p className="mt-2 text-sm leading-relaxed text-gray-600">
+                    {detail.description}
+                  </p>
+                )}
+              </div>
+
+              {/* Escalation banner */}
+              {detail?.isEscalated ? (
+                <div className="border-b border-orange-100 bg-orange-50 px-5 py-3 text-sm text-orange-800">
+                  <p className="font-medium">
+                    🚨 This request has been escalated
+                  </p>
+                  <p className="mt-0.5 text-xs text-orange-700">
+                    Reason: {detail.escalationReason || "—"} · By:{" "}
+                    {detail.escalatedByName || "—"} · On:{" "}
+                    {fmtDate(detail.escalatedOn)}
+                  </p>
+                </div>
+              ) : null}
+
+              {/* Metadata grid */}
+              <dl className="grid grid-cols-1 gap-x-6 gap-y-4 px-5 py-5 sm:grid-cols-2">
+                <MetaField icon="category" label="Category">
+                  {detail?.categoryName || "—"}
+                </MetaField>
+                <MetaField icon="user" label="Created by">
+                  {detail?.fullName || "—"}
+                </MetaField>
+                <MetaField icon="assign" label="Assigned to">
+                  {detail?.assignedToName || "—"}
+                </MetaField>
+                <MetaField icon="check" label="Approved by">
+                  {detail?.approvalName || "—"}
+                </MetaField>
+                <MetaField icon="calendar" label="Created">
+                  {fmtDate(detail?.createdOn)}
+                </MetaField>
+                <MetaField icon="clock" label="Updated">
+                  {fmtDate(detail?.updatedOn)}
+                </MetaField>
+                <MetaField icon="due" label="Due date">
+                  {detail?.dueDate ? fmtDate(detail.dueDate) : "Not set"}
+                </MetaField>
+                <MetaField icon="sla" label="SLA status">
+                  <Badge className={getSLABadgeStyle(detail?.slaStatus)}>
+                    {detail?.slaStatus || "No SLA"}
+                  </Badge>
+                </MetaField>
+              </dl>
             </div>
 
-            {/* Escalation banner */}
-            {detail?.isEscalated ? (
-              <div className="border-b border-orange-100 bg-orange-50 px-5 py-3 text-sm text-orange-800">
-                <p className="font-medium">
-                  🚨 This request has been escalated
-                </p>
-                <p className="mt-0.5 text-xs text-orange-700">
-                  Reason: {detail.escalationReason || "—"} · By:{" "}
-                  {detail.escalatedByName || "—"} · On:{" "}
-                  {fmtDate(detail.escalatedOn)}
-                </p>
+            {/* Mobile-only: actions + status inline */}
+            <div className="space-y-4 lg:hidden">
+              {actionsCard}
+              {statusCard}
+            </div>
+
+            {/* Audit trail */}
+            {isAdmin ? <AuditTrail requestId={id} /> : null}
+
+            {/* Comments */}
+            <CommentsSection
+              comments={comments}
+              loading={commentsLoading}
+              onAddComment={handleAddComment}
+              addingComment={addingComment}
+            />
+            {sessionHistory.length > 0 && (
+              <div className="mt-6 space-y-3">
+                <h4 className="text-sm font-semibold text-gray-700">
+                  Remote Session History
+                </h4>
+                <div className="space-y-2">
+                  {sessionHistory.map((session) => (
+                    <div
+                      key={session.remoteSessionId}
+                      className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm"
+                    >
+                      <div className="space-y-0.5">
+                        <p className="font-medium text-gray-900">
+                          Session #{session.remoteSessionId}
+                          <span
+                            className={`ml-2 inline-block rounded-full px-2 py-0.5 text-xs font-medium
+                ${session.status === "Ended" ? "bg-gray-100 text-gray-600" : ""}
+                ${session.status === "Active" ? "bg-green-100 text-green-700" : ""}
+                ${session.status === "Rejected" ? "bg-red-100 text-red-600" : ""}
+                ${session.status === "Pending" ? "bg-yellow-100 text-yellow-700" : ""}
+              `}
+                          >
+                            {session.status}
+                          </span>
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          By {session.initiatedByName}
+                          {session.startedAt && (
+                            <>
+                              {" "}
+                              · Started{" "}
+                              {new Date(session.startedAt).toLocaleString()}
+                            </>
+                          )}
+                          {session.durationSeconds && (
+                            <>
+                              {" "}
+                              · {Math.floor(session.durationSeconds / 60)}m{" "}
+                              {session.durationSeconds % 60}s
+                            </>
+                          )}
+                        </p>
+                        {session.resolutionNotes && (
+                          <p className="text-xs text-gray-600 mt-1 italic">
+                            "{session.resolutionNotes}"
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {/* Escalation history */}
+            {detail?.escalationHistory?.length > 0 ? (
+              <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
+                <div className="border-b border-gray-100 px-5 py-3.5">
+                  <h3 className="text-sm font-semibold text-gray-900">
+                    Escalation history
+                  </h3>
+                </div>
+                <div className="divide-y divide-gray-50 px-5">
+                  {detail.escalationHistory.map((item) => (
+                    <div
+                      key={
+                        item.escalationId ??
+                        `${item.escalatedOn}-${item.escalatedByName}`
+                      }
+                      className="py-4 text-sm"
+                    >
+                      <p className="font-medium text-gray-900">
+                        {item.escalatedByName || "—"}
+                      </p>
+                      <p className="mt-0.5 text-xs text-gray-500">
+                        {fmtDate(item.escalatedOn)}
+                      </p>
+                      <p className="mt-1.5 text-gray-700">
+                        {item.escalationReason || "—"}
+                      </p>
+                    </div>
+                  ))}
+                </div>
               </div>
             ) : null}
-
-            {/* Metadata grid */}
-            <dl className="grid grid-cols-1 gap-x-6 gap-y-4 px-5 py-5 sm:grid-cols-2">
-              <MetaField icon="category" label="Category">
-                {detail?.categoryName || "—"}
-              </MetaField>
-              <MetaField icon="user" label="Created by">
-                {detail?.fullName || "—"}
-              </MetaField>
-              <MetaField icon="assign" label="Assigned to">
-                {detail?.assignedToName || "—"}
-              </MetaField>
-              <MetaField icon="check" label="Approved by">
-                {detail?.approvalName || "—"}
-              </MetaField>
-              <MetaField icon="calendar" label="Created">
-                {fmtDate(detail?.createdOn)}
-              </MetaField>
-              <MetaField icon="clock" label="Updated">
-                {fmtDate(detail?.updatedOn)}
-              </MetaField>
-              <MetaField icon="due" label="Due date">
-                {detail?.dueDate ? fmtDate(detail.dueDate) : "Not set"}
-              </MetaField>
-              <MetaField icon="sla" label="SLA status">
-                <Badge className={getSLABadgeStyle(detail?.slaStatus)}>
-                  {detail?.slaStatus || "No SLA"}
-                </Badge>
-              </MetaField>
-            </dl>
           </div>
 
-          {/* Mobile-only: actions + status inline */}
-          <div className="space-y-4 lg:hidden">
+          {/* ── RIGHT — sticky sidebar (30%), desktop only ── */}
+          <div className="hidden w-72 shrink-0 space-y-4 lg:block lg:sticky lg:top-6 xl:w-80">
             {actionsCard}
             {statusCard}
+            {metaCard}
           </div>
-
-          {/* Audit trail */}
-          {isAdmin ? <AuditTrail requestId={id} /> : null}
-
-          {/* Comments */}
-          <CommentsSection
-            comments={comments}
-            loading={commentsLoading}
-            onAddComment={handleAddComment}
-            addingComment={addingComment}
-          />
-
-          {/* Escalation history */}
-          {detail?.escalationHistory?.length > 0 ? (
-            <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
-              <div className="border-b border-gray-100 px-5 py-3.5">
-                <h3 className="text-sm font-semibold text-gray-900">
-                  Escalation history
-                </h3>
-              </div>
-              <div className="divide-y divide-gray-50 px-5">
-                {detail.escalationHistory.map((item) => (
-                  <div
-                    key={
-                      item.escalationId ??
-                      `${item.escalatedOn}-${item.escalatedByName}`
-                    }
-                    className="py-4 text-sm"
-                  >
-                    <p className="font-medium text-gray-900">
-                      {item.escalatedByName || "—"}
-                    </p>
-                    <p className="mt-0.5 text-xs text-gray-500">
-                      {fmtDate(item.escalatedOn)}
-                    </p>
-                    <p className="mt-1.5 text-gray-700">
-                      {item.escalationReason || "—"}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : null}
         </div>
 
-        {/* ── RIGHT — sticky sidebar (30%), desktop only ── */}
-        <div className="hidden w-72 shrink-0 space-y-4 lg:block lg:sticky lg:top-6 xl:w-80">
-          {actionsCard}
-          {statusCard}
-          {metaCard}
-        </div>
-      </div>
+        {/* ── Modals (logic untouched) ── */}
+        <RequestActionModal
+          open={actionModal.open}
+          actionType={actionModal.type}
+          saving={mutating}
+          serverError={actionError}
+          onClose={() => {
+            if (!mutating) setActionModal({ open: false, type: null });
+          }}
+          onConfirm={handleActionConfirm}
+        />
 
-      {/* ── Modals (logic untouched) ── */}
-      <RequestActionModal
-        open={actionModal.open}
-        actionType={actionModal.type}
-        saving={mutating}
-        serverError={actionError}
-        onClose={() => {
-          if (!mutating) setActionModal({ open: false, type: null });
-        }}
-        onConfirm={handleActionConfirm}
-      />
-
-      <Modal
-        open={showEscalateModal}
-        onClose={escalating ? () => { } : closeEscalateModal}
-        title="Escalate Request"
-        closeOnOverlayClick={!escalating}
-        closeOnEscape={!escalating}
-        footer={
-          <>
-            <Button
-              type="button"
-              variant="secondary"
-              disabled={escalating}
-              onClick={closeEscalateModal}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              loading={escalating}
-              disabled={escalating}
-              className="border-orange-300 bg-orange-600 text-orange-700 hover:text-white hover:bg-orange-700"
-              onClick={handleEscalate}
-            >
-              {escalating ? "Escalating..." : "Confirm Escalate"}
-            </Button>
-          </>
-        }
-      >
-        <div className="space-y-4">
-          {escalationError ? (
-            <p
-              className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
-              role="alert"
-            >
-              {escalationError}
+        <Modal
+          open={showEscalateModal}
+          onClose={escalating ? () => {} : closeEscalateModal}
+          title="Escalate Request"
+          closeOnOverlayClick={!escalating}
+          closeOnEscape={!escalating}
+          footer={
+            <>
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={escalating}
+                onClick={closeEscalateModal}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                loading={escalating}
+                disabled={escalating}
+                className="border-orange-300 bg-orange-600 text-orange-700 hover:text-white hover:bg-orange-700"
+                onClick={handleEscalate}
+              >
+                {escalating ? "Escalating..." : "Confirm Escalate"}
+              </Button>
+            </>
+          }
+        >
+          <div className="space-y-4">
+            {escalationError ? (
+              <p
+                className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+                role="alert"
+              >
+                {escalationError}
+              </p>
+            ) : null}
+            <p className="text-sm text-gray-700">
+              Request: {detail?.requestNumber || detail?.requestId} -{" "}
+              {detail?.title}
             </p>
-          ) : null}
-          <p className="text-sm text-gray-700">
-            Request: {detail?.requestNumber || detail?.requestId} -{" "}
-            {detail?.title}
-          </p>
-          <p className="rounded-lg border border-orange-200 bg-orange-50 px-3 py-2 text-sm text-orange-800">
-            Escalating marks this request as urgent. This action cannot be
-            undone.
-          </p>
-          <label className="grid gap-1 text-sm font-medium text-gray-700">
-            Reason for escalation *
-            <textarea
-              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-              rows={3}
-              value={escalationReason}
-              onChange={(ev) => setEscalationReason(ev.target.value)}
-              disabled={escalating}
-              placeholder="Explain why this request needs immediate attention..."
-            />
-          </label>
-        </div>
-      </Modal>
-    </div>
+            <p className="rounded-lg border border-orange-200 bg-orange-50 px-3 py-2 text-sm text-orange-800">
+              Escalating marks this request as urgent. This action cannot be
+              undone.
+            </p>
+            <label className="grid gap-1 text-sm font-medium text-gray-700">
+              Reason for escalation *
+              <textarea
+                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                rows={3}
+                value={escalationReason}
+                onChange={(ev) => setEscalationReason(ev.target.value)}
+                disabled={escalating}
+                placeholder="Explain why this request needs immediate attention..."
+              />
+            </label>
+          </div>
+        </Modal>
+      </div>
+      <RemoteAccessRequestModal
+        isOpen={isRemoteModalOpen}
+        onClose={() => setIsRemoteModalOpen(false)}
+        requestId={detail?.requestId || Number(id)}
+        requestNumber={detail?.requestNumber}
+        requestTitle={detail?.title}
+        targetUserName={detail?.fullName}
+      />
+    </>
   );
 }
