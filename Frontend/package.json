@@ -1,8 +1,9 @@
 {
   "name": "frontend",
   "private": true,
-  "version": "1.0.1",
+  "version": "2.0.0",
   "type": "module",
+  "description": "version 2.0.0 Is Include new feature name Remote Session where user(support) can take action of user(employee,Manager) with permissions.",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

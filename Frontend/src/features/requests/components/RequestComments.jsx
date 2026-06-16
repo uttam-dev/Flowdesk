@@ -37,19 +37,6 @@ export function RequestComments({ comments = [], loading }) {
           </p>
         ) : (
           comments.map((c) => {
-            // Helpful runtime check during development when API occasionally
-            // returns non-boolean values for `isCurrentUser`.
-            if (process.env.NODE_ENV === "development") {
-              if (c.isCurrentUser !== true && c.isCurrentUser !== false) {
-                console.debug(
-                  "RequestComments: isCurrentUser non-boolean",
-                  c.commentId ?? c.createdOn,
-                  c.isCurrentUser,
-                  c,
-                );
-              }
-            }
-
             const isMine = c.isCurrentUser === true;
             const rawName = c.userName == null ? "-" : c.userName;
             const name = isMine ? "You" : rawName;

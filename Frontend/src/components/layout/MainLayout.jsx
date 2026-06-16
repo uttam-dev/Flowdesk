@@ -3,8 +3,16 @@ import { useLocation, Outlet } from "react-router-dom";
 import { Header } from "./Header.jsx";
 import { Sidebar } from "./Sidebar.jsx";
 import { ChatWidget } from "../../features/chat/components/ChatWidget.jsx";
+import { useRemoteSignalR } from "../../features/remote/useRemoteSignalR.js";
+import RemoteAccessIncomingModal from "../../features/remote/components/RemoteAccessIncomingModal.jsx";
+import RemoteSessionViewer from "../../features/remote/components/RemoteSessionViewer.jsx";
+import { useSelector } from "react-redux";
+import { selectIsViewerOpen } from "../../features/remote/remoteSlice.js";
 
 export function MainLayout() {
+  const isViewerOpen = useSelector(selectIsViewerOpen);
+  // Register all remote session SignalR listeners globally
+  useRemoteSignalR();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
@@ -48,6 +56,11 @@ export function MainLayout() {
           <Outlet />
         </main>
       </div>
+      {/* Accept/Reject popup — shown to employee/manager when support requests remote access */}
+      <RemoteAccessIncomingModal />
+
+      {/* Full-screen viewer — shown to support when session is live */}
+      {isViewerOpen && <RemoteSessionViewer />}
 
       <ChatWidget />
     </div>
