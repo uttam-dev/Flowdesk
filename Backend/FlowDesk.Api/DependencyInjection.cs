@@ -136,21 +136,23 @@ namespace FlowDesk.Api
             {
                 options.AddPolicy("AllowFrontend", policy =>
                 {
+                    var allowedOrigins = configuration
+                        .GetSection("CorsSettings:AllowedOrigins")
+                        .Get<string[]>();
 
-                    var allowedOrigins = configuration.GetSection("CorsSettings:AllowedOrigins").Get<string[]>();
-                    policy
-                    .WithOrigins(allowedOrigins!)
-                    .AllowAnyMethod()
-                    .AllowCredentials()
-                    .AllowAnyHeader();
-                });
+                    policy.SetIsOriginAllowed(origin =>
+                    {                   
+                        if (allowedOrigins!.Contains(origin))
+                            return true;
 
-                options.AddPolicy("AllowAgent", policy =>
-                {
-                    policy
-                    .AllowAnyOrigin()
+                        if (string.IsNullOrEmpty(origin) || origin == "null")
+                            return true;
+
+                        return false;
+                    })
                     .AllowAnyMethod()
-                    .AllowAnyHeader();
+                    .AllowAnyHeader()
+                    .AllowCredentials();
                 });
             });
 

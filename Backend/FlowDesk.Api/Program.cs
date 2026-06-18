@@ -80,13 +80,13 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.MapHub<RequestHub>("/hubs/request").RequireCors("AllowAgent");
+app.UseCors("AllowFrontend");
+
+app.MapHub<RequestHub>("/hubs/request").RequireCors("AllowAll");
 
 app.MapGet("/health", () => Results.Ok("OK"));
 
 app.UseMiddleware<GlobalExceptionMiddleware>();
-
-app.UseCors("AllowFrontend");
 
 app.UseHttpsRedirection();
 
