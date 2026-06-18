@@ -20,6 +20,15 @@ frontend/**/build/
 frontend/**/.next/
 frontend/**/.cache/
 
+# Frontend (React / Next / Vite)
+
+############################
+Flowdesk.agent/**/node_modules/
+Flowdesk.agent/**/dist/
+Flowdesk.agent/**/build/
+Flowdesk.agent/**/.next/
+Flowdesk.agent/**/.cache/
+
 ############################
 
 # Logs
