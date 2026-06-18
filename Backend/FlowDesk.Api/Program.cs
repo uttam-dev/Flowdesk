@@ -80,7 +80,7 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.MapHub<RequestHub>("/hubs/request");
+app.MapHub<RequestHub>("/hubs/request").RequireCors("AllowAgent");
 
 app.MapGet("/health", () => Results.Ok("OK"));
 

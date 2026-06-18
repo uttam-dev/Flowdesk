@@ -1,16 +1,16 @@
-﻿using FlowDesk.Application.Features.Users.Commands;
-using FlowDesk.Application.Features.Users.DTOs;
-using FlowDesk.Application.Features.Users.Queries;
+﻿using FlowDesk.Application.Features.Users.Queries;
 using FlowDesk.Domain.DTOs;
 using FlowDesk.Domain.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
 using System.Security.Claims;
 
 namespace FlowDesk.Api.Controllers
 {
+    [EnableCors("AllowAgent")]
     [Route("api/[controller]")]
     [ApiController]
     public class AuthController(IAuthService _authService, IMediator _mediator, IConfiguration configuration) : ControllerBase
