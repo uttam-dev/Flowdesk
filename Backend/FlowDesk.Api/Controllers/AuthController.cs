@@ -10,7 +10,6 @@ using System.Security.Claims;
 
 namespace FlowDesk.Api.Controllers
 {
-    [EnableCors("AllowAgent")]
     [Route("api/[controller]")]
     [ApiController]
     public class AuthController(IAuthService _authService, IMediator _mediator, IConfiguration configuration) : ControllerBase
