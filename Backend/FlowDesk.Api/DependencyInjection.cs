@@ -148,7 +148,7 @@ namespace FlowDesk.Api
                 options.AddPolicy("AllowAgent", policy =>
                 {
                     policy
-                    .WithOrigins("*")
+                    .AllowAnyOrigin()
                     .AllowAnyMethod()
                     .AllowAnyHeader();
                 });
