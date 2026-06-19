@@ -1,0 +1,47 @@
+{
+  "name": "flowdesk-agent",
+  "version": "1.0.0",
+  "description": "FlowDesk Remote Support Agent",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build:win": "electron-builder --win",
+    "build:mac": "electron-builder --mac",
+    "build:all": "electron-builder --win --mac"
+  },
+  "build": {
+    "appId": "com.flowdesk.agent",
+    "productName": "FlowDesk Agent",
+    "icon": "assets/icon",
+    "files": [
+      "main.js",
+      "preload.js",
+      "config.js",
+      "renderer/**/*",
+      "assets/**/*",
+      "node_modules/**/*"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icon.ico"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "assets/icon.icns",
+      "category": "public.app-category.utilities"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": false
+    }
+  },
+  "dependencies": {
+    "@microsoft/signalr": "^8.0.0",
+    "@nut-tree-fork/nut-js": "^4.2.1"
+  },
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^24.0.0"
+  }
+}
