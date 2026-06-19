@@ -144,6 +144,14 @@ namespace FlowDesk.Api
                     .AllowCredentials()
                     .AllowAnyHeader();
                 });
+
+                options.AddPolicy("AllowAgent", policy =>
+                {
+                    policy
+                    .WithOrigins("*")
+                    .AllowAnyMethod()
+                    .AllowAnyHeader();
+                });
             });
 
             //SingleR 
