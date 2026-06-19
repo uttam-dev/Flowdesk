@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FlowDesk Agent</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+      background: #f8fafc;
+      color: #1e293b;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 24px;
+      background: #ffffff;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .topbar-logo img {
+      height: 28px;
+      display: block;
+    }
+
+    .topbar-text {
+      font-size: 14px;
+      color: #475569;
+      font-weight: 500;
+    }
+
+    .main-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .header h1 {
+      font-size: 32px;
+      font-weight: 600;
+      color: #0f172a;
+      margin-bottom: 12px;
+    }
+
+    .header p {
+      font-size: 16px;
+      color: #475569;
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+      padding: 40px;
+      width: 100%;
+      max-width: 440px;
+    }
+
+    .input-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      color: #334155;
+      margin-bottom: 8px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 15px;
+      color: #0f172a;
+      outline: none;
+      transition: all 0.2s;
+      background: #ffffff;
+    }
+
+    input::placeholder {
+      color: #94a3b8;
+    }
+
+    input:focus {
+      border-color: #0ea5e9;
+      box-shadow: 0 0 0 1px #0ea5e9;
+    }
+
+    .password-wrapper {
+      position: relative;
+    }
+
+    .password-wrapper input {
+      padding-right: 40px;
+    }
+
+    .toggle-password {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .toggle-password:hover {
+      color: #334155;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #059669;
+      /* Emerald 600 */
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-top: 8px;
+    }
+
+    button:hover {
+      background: #047857;
+      /* Emerald 700 */
+    }
+
+    button:disabled {
+      background: #6ee7b7;
+      cursor: not-allowed;
+    }
+
+    .terms {
+      text-align: center;
+      font-size: 13px;
+      color: #64748b;
+      margin-top: 20px;
+    }
+
+    .footer {
+      margin-top: 32px;
+      font-size: 15px;
+      color: #475569;
+    }
+
+    .footer a {
+      color: #059669;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
+
+    .error {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 14px;
+      color: #dc2626;
+      margin-bottom: 20px;
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="topbar">
+    <div class="topbar-logo">
+      <img src="../assets/flowdesk_logo-black.webp" alt="FlowDesk" />
+    </div>
+    <div class="topbar-text">Secure access</div>
+  </div>
+
+  <div class="main-container">
+    <div class="header">
+      <h1>Welcome back</h1>
+      <p>Sign in with your work email to continue</p>
+    </div>
+
+    <div class="card">
+      <div class="error" id="error"></div>
+
+      <div class="input-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" placeholder="you@company.com" />
+      </div>
+
+      <div class="input-group">
+        <label for="password">Password</label>
+        <div class="password-wrapper">
+          <input type="password" id="password" placeholder="••••••••" />
+          <span class="toggle-password" id="togglePassword">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          </span>
+        </div>
+      </div>
+
+      <button id="loginBtn">Sign in</button>
+
+      <p class="terms">By continuing you agree to your organization's access policies.</p>
+    </div>
+  </div>
+  <script>
+    const loginBtn = document.getElementById('loginBtn');
+    const emailEl  = document.getElementById('email');
+    const passEl   = document.getElementById('password');
+    const errorEl  = document.getElementById('error');
+    const togglePwd = document.getElementById('togglePassword');
+
+    function showError(msg) { errorEl.textContent = msg; errorEl.style.display = 'block'; }
+    function hideError()    { errorEl.style.display = 'none'; }
+
+    function getServerConfig() {
+      try {
+        return window.agent?.getServerConfig?.() ?? {};
+      } catch {
+        return {};
+      }
+    }
+
+    const { apiUrl: API_URL = '', hubUrl: HUB_URL = '' } = getServerConfig();
+
+    async function readResponseBody(res) {
+      const text = await res.text();
+      if (!text) return null;
+
+      try {
+        return JSON.parse(text);
+      } catch {
+        return text;
+      }
+    }
+
+    function pickErrorMessage(body, fallback) {
+      if (typeof body === 'string' && body.trim()) return body;
+      if (body?.message) return String(body.message);
+      if (body?.title) return String(body.title);
+      if (Array.isArray(body?.errors) && body.errors.length) {
+        return body.errors
+          .map((err) => typeof err === 'string' ? err : err?.message)
+          .filter(Boolean)
+          .join(', ');
+      }
+      return fallback;
+    }
+
+    function normalizeRoles(value) {
+      if (!value && value !== 0) return [];
+      if (Array.isArray(value)) return value.map(String);
+      if (typeof value === 'string') return [value];
+      return [];
+    }
+
+    function mapAuthResponse(raw) {
+      const body = raw && typeof raw === 'object' && raw.data != null ? raw.data : raw;
+      const data = body && typeof body === 'object' ? body : {};
+      const userRaw = data.user ?? data.User ?? data.userAccount ?? data.account ?? null;
+      const user = userRaw && typeof userRaw === 'object' ? userRaw : data;
+      const roles = normalizeRoles(
+        user.roles ?? user.Roles ?? user.role ?? user.Role ?? data.roleName ?? data.RoleName,
+      );
+
+      return {
+        accessToken: data.accessToken ?? data.token ?? data.access_token ?? data.Token ?? null,
+        refreshToken: data.refreshToken ?? data.refresh_token ?? data.RefreshToken ?? null,
+        fullName: user.fullName ?? user.FullName ?? user.name ?? user.Name ?? data.fullName ?? data.name ?? null,
+        roleName: roles[0] ?? data.roleName ?? data.RoleName ?? null,
+      };
+    }
+
+     togglePwd.addEventListener('click', () => {
+      const type = passEl.getAttribute('type') === 'password' ? 'text' : 'password';
+      passEl.setAttribute('type', type);
+
+      // Update icon
+      if (type === 'text') {
+        togglePwd.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+            <line x1="1" y1="1" x2="23" y2="23"></line>
+          </svg>`;
+      } else {
+        togglePwd.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>`;
+      }
+    });
+
+    loginBtn.addEventListener('click', async () => {
+      hideError();
+
+      const email    = emailEl.value.trim();
+      const password = passEl.value;
+
+      if (!email || !password) {
+        showError('Please enter your email and password.');
+        return;
+      }
+
+      loginBtn.disabled    = true;
+      loginBtn.textContent = 'Signing in...';
+
+      try {
+        if (!API_URL || !HUB_URL || !window.agent?.authSuccess) {
+          throw new Error('Agent configuration is not loaded. Restart the app and try again.');
+        }
+
+        const res = await fetch(`${API_URL}/auth/login`, {
+          method      : 'POST',
+          headers     : { 'Content-Type': 'application/json' },
+          // credentials: 'include' intentionally omitted
+          // Agent uses tokens from JSON body only — not cookies
+          body        : JSON.stringify({ email, password }),
+        });
+
+        const body = await readResponseBody(res);
+
+        if (!res.ok) {
+          throw new Error(pickErrorMessage(body, 'Login failed. Check your credentials.'));
+        }
+
+        const { accessToken, refreshToken, fullName, roleName } = mapAuthResponse(body);
+
+        if (!accessToken || !refreshToken) {
+          throw new Error('Invalid response from server.');
+        }
+
+        // Pass everything to main process
+        window.agent.authSuccess({
+          accessToken,
+          refreshToken,
+          fullName,
+          roleName,
+          apiUrl : API_URL,
+          hubUrl : HUB_URL,
+        });
+
+      } catch (err) {
+        showError(err.message || 'Connection failed. Check the configured server URL.');
+      } finally {
+        loginBtn.disabled    = false;
+        loginBtn.textContent = 'Sign in';
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') loginBtn.click();
+    });
+  </script>
+
+</body>
+
+</html>
