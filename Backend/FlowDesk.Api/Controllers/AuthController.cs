@@ -1,10 +1,9 @@
-﻿using FlowDesk.Application.Features.Users.Commands;
-using FlowDesk.Application.Features.Users.DTOs;
-using FlowDesk.Application.Features.Users.Queries;
+﻿using FlowDesk.Application.Features.Users.Queries;
 using FlowDesk.Domain.DTOs;
 using FlowDesk.Domain.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
 using System.Security.Claims;
