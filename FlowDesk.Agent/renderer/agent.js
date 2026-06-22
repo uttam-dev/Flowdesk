@@ -44,20 +44,20 @@ async function refreshAccessToken() {
   isRefreshing = true;
 
   try {
-    const res = await fetch(`${authState.apiUrl}/auth/refresh`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ refreshToken: authState.refreshToken }),
-    });
-
-    if (!res.ok) {
+    if (!window.agent?.refreshToken) {
       window.agent.reportDisconnected();
       window.agent.requestReLogin();
       return false;
     }
 
-    const json = await res.json();
-    const { accessToken, refreshToken } = mapAuthResponse(json);
+    const refreshResult = await window.agent.refreshToken(authState.refreshToken);
+    if (!refreshResult?.ok) {
+      window.agent.reportDisconnected();
+      window.agent.requestReLogin();
+      return false;
+    }
+
+    const { accessToken, refreshToken } = mapAuthResponse(refreshResult.body);
 
     if (!accessToken) {
       window.agent.reportDisconnected();

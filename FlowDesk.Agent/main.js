@@ -12,6 +12,10 @@ const path = require("path");
 const { mouse, keyboard, Button, Key } = require("@nut-tree-fork/nut-js");
 const { serverConfig } = require("./config");
 
+app.commandLine.appendSwitch('disable-ipv6');
+app.commandLine.appendSwitch('disable-http2');
+app.commandLine.appendSwitch('ignore-certificate-errors');
+
 // ── Disable nut-js delays for real-time control ───────────────────────────────
 mouse.config.autoDelayMs = 0;
 keyboard.config.autoDelayMs = 0;
@@ -198,7 +202,7 @@ function createLoginWindow() {
       session: session.defaultSession,
     },
   });
-
+loginWindow.webContents.openDevTools({ mode: 'detach' });
   loginWindow.loadFile(path.join(__dirname, "renderer", "login.html"));
   loginWindow.on("closed", () => {
     loginWindow = null;
