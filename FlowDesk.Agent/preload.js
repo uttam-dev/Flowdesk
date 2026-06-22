@@ -3,6 +3,8 @@ const { serverConfig } = require('./config');
 
 contextBridge.exposeInMainWorld('agent', {
   getServerConfig: () => ({ ...serverConfig }),
+  login: (email, password) => ipcRenderer.invoke('auth:login', { email, password }),
+  refreshToken: (refreshToken) => ipcRenderer.invoke('auth:refresh', { refreshToken }),
 
   // ── OS control ───────────────────────────────────────────────────────────
   mouseMove    : (x, y)                    => ipcRenderer.send('agent:mouse-move',  { x, y }),

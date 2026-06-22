@@ -339,7 +339,7 @@
       loginBtn.textContent = 'Signing in...';
 
       try {
-        if (!API_URL || !HUB_URL || !window.agent?.authSuccess) {
+        if (!API_URL || !HUB_URL || !window.agent?.authSuccess || !window.agent?.login) {
           throw new Error('Agent configuration is not loaded. Restart the app and try again.');
         }
 
