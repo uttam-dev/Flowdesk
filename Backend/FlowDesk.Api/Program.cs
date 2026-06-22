@@ -82,7 +82,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("AllowFrontend");
 
-app.MapHub<RequestHub>("/hubs/request").RequireCors("AllowAll");
+app.MapHub<RequestHub>("/hubs/request");
 
 app.MapGet("/health", () => Results.Ok("OK"));
 
